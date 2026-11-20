@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import type { Lesson } from "@/types/lesson";
 import type { LessonStep } from "@/types/steps";
+import { toLessonBase } from "./mappers";
 
 // ---- Pobieranie z bazy ----
 
@@ -79,15 +80,5 @@ export async function getLesson(id: string): Promise<Lesson | null> {
     return [];
   });
 
-  return {
-    id: row.id,
-    order: row.order,
-    chapterTitle: row.chapterTitle,
-    title: row.title,
-    description: row.description,
-    estimatedMinutes: row.estimatedMinutes,
-    unlockAssetId: row.unlockAssetId,
-    targetPersonas: row.targetPersonas.map((p) => p.persona),
-    steps,
-  };
+  return { ...toLessonBase(row), steps };
 }

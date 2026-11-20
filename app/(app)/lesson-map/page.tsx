@@ -1,4 +1,6 @@
-// app/(app)/topic/page.tsx
+// app/(app)/lesson-map/page.tsx
+//
+// Mapa lekcji: lista lekcji ze statusem (ukończona / aktywna / zablokowana).
 
 import Link from "next/link";
 import { Suspense } from "react";
@@ -33,7 +35,7 @@ async function LessonList() {
   const lessons = await getLessons(); // TODO: przekaż id zalogowanego użytkownika
 
   if (lessons.length === 0) {
-    return <p className="font-medium text-slate-500">Brak lekcji w tym temacie.</p>;
+    return <p className="font-medium text-slate-500">Brak lekcji.</p>;
   }
 
   return (
@@ -44,7 +46,7 @@ async function LessonList() {
         return (
           <li key={lesson.id}>
             <Link
-              href={`/lesson/${lesson.id}`}
+              href={`/lesson-map/${lesson.id}`}
               className={`block w-full rounded-2xl border-2 border-b-[6px] p-5 transition-transform duration-75 hover:brightness-105 active:translate-y-[4px] active:border-b-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300 ${s.card}`}
             >
               <div className="flex items-start justify-between gap-4">
@@ -70,12 +72,12 @@ async function LessonList() {
   );
 }
 
-export default function TopicPage() {
+export default function LessonMapPage() {
   return (
     <section className="flex min-h-full w-full justify-center px-4 py-10">
       <div className="flex w-full max-w-xl flex-col gap-6">
         <header className="flex flex-col gap-1">
-          <h1 className="text-3xl font-extrabold">Topic</h1>
+          <h1 className="text-3xl font-extrabold">Mapa lekcji</h1>
           <p className="font-medium text-slate-500">Wybierz lekcję, aby zacząć naukę</p>
         </header>
 

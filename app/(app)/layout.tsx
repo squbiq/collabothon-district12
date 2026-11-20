@@ -13,7 +13,6 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
 
         <section className="flex flex-row gap-2">
           <Link href={"/daily-lesson"} className={buttonVariants()} >Daily lesson</Link>
-          <Link href={"/topic"} className={buttonVariants()} >Topic</Link>
           <Link href={"/lesson-map"} className={buttonVariants()} >Lessons</Link>
         </section>
 

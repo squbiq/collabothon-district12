@@ -1,44 +1,40 @@
 export interface BaseStep {
-    id: string;
-    title: string;
+  id: string;
+  title: string;
 }
 
-// Ten Krok ma zaprezentowac jakis fajny krotki przyklad z życia
-
+/** Krok 1: krótki przykład z życia, wprowadzenie do tematu. */
 export interface StoryStep extends BaseStep {
-    type: 'story';
-    narrative: string;
+  type: "story";
+  narrative: string;
 }
 
-// Krok 2: Wyjasnienie konceptu
+/** Krok 2: wyjaśnienie konceptu + jedna kluczowa myśl. */
 export interface ConceptStep extends BaseStep {
-    type: 'concept';
-    explanation: string;
-    keyTakeaway: string;
+  type: "concept";
+  explanation: string;
+  keyTakeaway: string;
 }
 
-// Krok 3: Scenariusz decyzyjny (Case Study bez kar)
 export interface DecisionOption {
-    id: string;
-    label: string;
-    isOptimal: boolean;
-    feedback: string;
-} 
+  id: string;
+  label: string;
+  isOptimal: boolean;
+  feedback: string;
+}
 
+/** Krok 3: scenariusz decyzyjny (case study bez kar, każda opcja ma feedback). */
 export interface DecisionStep extends BaseStep {
-    type: 'decision';
-    scenario: string;
-    options: DecisionOption[];
+  type: "decision";
+  scenario: string;
+  options: DecisionOption[];
 }
 
-//Krok 4: Podsumowanie lekcji?
+/** Krok 4: podsumowanie lekcji. */
 export interface SummaryStep extends BaseStep {
-    type: 'summary';
-    summary: string;
-    keyTakeaways: string[];
+  type: "summary";
+  summary: string;
+  keyTakeaways: string[];
 }
 
-export type LessonStep = StoryStep 
-| ConceptStep 
-| DecisionStep 
-| SummaryStep;
+export type LessonStep = StoryStep | ConceptStep | DecisionStep | SummaryStep;

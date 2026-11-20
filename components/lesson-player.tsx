@@ -65,7 +65,7 @@ export function LessonPlayer({ lesson }: { lesson: Lesson }) {
     <div className="flex min-h-full w-full flex-col">
       <header className="mx-auto flex w-full max-w-2xl items-center gap-4 px-4 py-4">
         <Link
-          href="/topic"
+          href="/lesson-map"
           aria-label="Wyjdź z lekcji"
           className="text-2xl font-bold leading-none text-slate-400 hover:text-slate-600"
         >
@@ -121,7 +121,7 @@ export function LessonPlayer({ lesson }: { lesson: Lesson }) {
 function BackLink() {
   return (
     <Link
-      href="/topic"
+      href="/lesson-map"
       className="rounded-2xl border-b-4 border-green-700 bg-green-500 px-6 py-3 font-extrabold text-white active:translate-y-[2px] active:border-b-2"
     >
       Wróć do lekcji
