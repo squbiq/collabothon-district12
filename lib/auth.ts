@@ -13,10 +13,12 @@ export const auth = betterAuth({
     updateAge: 60 * 60 * 24,
     cookieCache: { enabled: true, maxAge: 5 * 60 },
   },
-  additionalFields: {
-    totalXp: { type: "number", required: true, defaultValue: 0, input: false },
-    streak: { type: "number", required: true, defaultValue: 0, input: false},
-    lastStreakUpdate: { type: "date", required: false }
+  user: {
+    additionalFields: {
+      experience: { type: "number", required: true, defaultValue: 0, input: false },
+      streak: { type: "number", required: true, defaultValue: 0, input: false},
+      lastStreakUpdate: { type: "date", required: false, defaultValue: new Date()  }
+    },
   },
   plugins: [
     username({ minUsernameLength: 6, maxUsernameLength: 20 }),

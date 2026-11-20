@@ -6,33 +6,37 @@ model User {
   email              String
   emailVerified      Boolean           @default(false)
   image              String?           @db.Text
-  role               String            @default("user")
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
+  username           String?
+  displayUsername    String?           @db.Text
+  role               String?           @db.Text
   banned             Boolean           @default(false)
   banReason          String?           @db.Text
   banExpires         DateTime?         @db.Timestamp(3)
   experience         Int               @default(0) @db.UnsignedInt
   streak             Int               @default(0) @db.UnsignedInt
-  lastStreakUpdate   DateTime          
+  lastStreakUpdate   DateTime          @default(now())
   sessions           Session[]
   accounts           Account[]
   userLessonProgress UserLessonProgress[]
 
   @@unique([email])
+  @@unique([username])
   @@map("user")
 }
 
 model Session {
-  id        String   @id
-  expiresAt DateTime
-  token     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ipAddress String?  @db.Text
-  userAgent String?  @db.Text
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String   @id
+  expiresAt      DateTime
+  token          String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ipAddress      String?  @db.Text
+  userAgent      String?  @db.Text
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  impersonatedBy String?  @db.Text
 
   @@unique([token])
   @@index([userId(length: 191)])
