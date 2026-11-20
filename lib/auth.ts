@@ -14,7 +14,9 @@ export const auth = betterAuth({
     cookieCache: { enabled: true, maxAge: 5 * 60 },
   },
   additionalFields: {
-    totalXp: { type: "number", required: false, defaultValue: 0, input: false },
+    totalXp: { type: "number", required: true, defaultValue: 0, input: false },
+    streak: { type: "number", required: true, defaultValue: 0, input: false},
+    lastStreakUpdate: { type: "date", required: false }
   },
   plugins: [
     username({ minUsernameLength: 6, maxUsernameLength: 20 }),

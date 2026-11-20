@@ -13,6 +13,8 @@ model User {
   banReason          String?           @db.Text
   banExpires         DateTime?         @db.Timestamp(3)
   experience         Int               @default(0) @db.UnsignedInt
+  streak             Int               @default(0) @db.UnsignedInt
+  lastStreakUpdate   DateTime          
   sessions           Session[]
   accounts           Account[]
   userLessonProgress UserLessonProgress[]
