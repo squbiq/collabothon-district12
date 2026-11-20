@@ -2,10 +2,10 @@ import { PersonaType } from "./users";
 import { LessonStep } from "./steps";
 
 // statusy lekcji
-export type TopicStatus = 'locked' | 'active' | 'completed';
+export type LessonStatus = 'locked' | 'active' | 'completed';
 
 // Sama struktura opisu lekcji
-export interface Topic {
+export interface Lesson {
     id: string;
     order: number;
     chapterTitle: string;
@@ -17,12 +17,12 @@ export interface Topic {
     steps: LessonStep[];
 }
 
-export type TopicRoadmapItem = Omit<Topic, 'steps'> & {
-    status: TopicStatus;
+export type TopicRoadmapItem = Omit<Lesson, 'steps'> & {
+    status: LessonStatus;
     stepsCount: number;
 };
 
-export interface CompleteTopic {
+export interface CompleteLesson {
     topicId: string;
     earnedCurrency: number;
     newWalletBalance: number;
