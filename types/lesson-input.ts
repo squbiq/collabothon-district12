@@ -32,3 +32,19 @@ export interface CreateLessonInput {
 export type CreateLessonResult =
   | { ok: true; id: string }
   | { ok: false; error: string };
+
+export type ChapterOption = {
+  id: string;
+  title: string;
+};
+
+export type LessonSummary = {
+  id: string;
+  title: string;
+  order: number | null;
+};
+
+// Pełne dane lekcji zwracane przy edycji
+export type LessonDetails = CreateLessonInput & {
+  id: string;
+};

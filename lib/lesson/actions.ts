@@ -10,6 +10,7 @@ import {
   type CreateLessonResult,
   type StepInput,
 } from "@/types/lesson-input";
+import { ChapterOption, LessonSummary, LessonDetails } from "@/types/lesson-input";
 
 type StepCreate = {
   order: number;
@@ -153,10 +154,33 @@ export async function createLesson(
       select: { id: true },
     });
 
-    revalidatePath("/topic");
+    revalidatePath("/lesson-map");
     return { ok: true, id: lesson.id };
   } catch (e) {
     console.error("createLesson failed", e);
     return fail("Nie udało się zapisać lekcji. Spróbuj ponownie.");
   }
 }
+
+// 1. Pobiera listę rozdziałów do pierwszego Selecta
+export async function getChapters(): Promise<ChapterOption[]> { 
+    throw new Error();
+ }
+
+// 2. Pobiera listę lekcji dla wybranego rozdziału do drugiego Selecta
+export async function getLessonsByChapter(chapterId: string): Promise<LessonSummary[]> { 
+    throw new Error();
+ }
+
+// 3. Pobiera pełne dane jednej lekcji (wraz z krokami), aby wypełnić formularz
+export async function getLessonById(lessonId: string): Promise<LessonDetails | null> { 
+    throw new Error();
+ }
+
+// 4. Zapisuje zmiany istniejącej lekcji (odpowiednik createLesson)
+export async function updateLesson(
+  lessonId: string,
+  input: CreateLessonInput
+): Promise<{ ok: true } | { ok: false; error: string }> { 
+    throw new Error();
+ }
