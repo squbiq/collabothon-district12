@@ -21,6 +21,9 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
           <Link href={"/lesson-map"} className={buttonVariants({ size: "xl" })} >
             <BookOpen className="size-5" /> Lessons
           </Link>
+          <Link href={"/arena"} className={buttonVariants({ size: "xl" })} >
+            <BookOpen className="size-5" /> Arena
+          </Link>
         </section>
 
         <section>

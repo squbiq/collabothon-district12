@@ -1,3 +1,5 @@
+// components/path-switcher.tsx
+
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -8,12 +10,7 @@ export function PathSwitcher({ currentId }: { currentId: LessonPathId }) {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-col">
-        <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-          Path
-        </span>
-        <h1 className="text-3xl font-extrabold">{current.name}</h1>
-      </div>
+      <h1 className="text-3xl font-extrabold">{current.name}</h1>
 
       <nav aria-label="Change path" className="grid grid-cols-2 gap-2">
         {LESSON_PATHS.map((path) => {

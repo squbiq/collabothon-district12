@@ -14,7 +14,10 @@ export type LessonStatus = "locked" | "active" | "completed";
 export interface LessonBase {
   id: string;
   order: number;
-  pathId?: LessonPathId; // opcjonalne, dopóki nie ma go w bazie
+  pathId?: LessonPathId;
+  chapterId: string;
+  chapterNumber: number;
+  chapterTitle: string;
   title: string;
   description: string;
   estimatedMinutes: number;

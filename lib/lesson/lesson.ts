@@ -14,9 +14,10 @@ function toStringArray(value: unknown): string[] {
 }
 
 export async function getLesson(id: string): Promise<Lesson | null> {
-  const row = await prisma.lesson.findUnique({
+    const row = await prisma.lesson.findUnique({
     where: { id },
     include: {
+      chapter: true,
       targetPersonas: true,
       steps: {
         orderBy: { order: "asc" },
