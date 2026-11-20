@@ -25,8 +25,8 @@ import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 
 const loginSchema = z.object({
-  username: z.string().min(1, "Please enter your username."),
-  password: z.string().min(1, "Please enter your password."),
+  email: z.string().email("Please enter a valid email address."),
+  password: z.string().min(8, "Please enter your password."),
 });
 
 type LoginValues = z.infer<typeof loginSchema>;
@@ -36,18 +36,19 @@ export default function LoginPage() {
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { username: "", password: "" },
+    defaultValues: { email: "", password: "" },
   });
 
   async function onSubmit(values: LoginValues) {
-    const { error } = await authClient.signIn.username({
-      username: values.username,
+    const { error } = await authClient.signIn.email({
+      email: values.email,
       password: values.password,
     });
 
     if (error) {
+        console.error("Login error:", error);
       form.setError("root", {
-        message: "Invalid username or password.",
+        message: "Invalid email or password.",
       });
       return;
     }
@@ -64,25 +65,25 @@ export default function LoginPage() {
         <CardHeader>
           <CardTitle>Login</CardTitle>
           <CardDescription>
-            Enter your username and password to continue.
+            Enter your email and password to continue.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form id="form-login" onSubmit={form.handleSubmit(onSubmit)}>
             <FieldGroup>
               <Controller
-                name="username"
+                name="email"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="form-login-username">
-                      Username
+                    <FieldLabel htmlFor="form-login-email">
+                      Email
                     </FieldLabel>
                     <Input
                       {...field}
-                      id="form-login-username"
+                      id="form-login-email"
                       aria-invalid={fieldState.invalid}
-                      autoComplete="username"
+                      autoComplete="email"
                     />
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />

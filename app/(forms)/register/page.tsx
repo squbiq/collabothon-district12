@@ -48,15 +48,15 @@ export default function RegisterPage() {
  
   const form = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { username: "", email: "", password: "" },
+    defaultValues: { username: "", email: "", password: "" }, 
   });
  
   async function onSubmit(values: RegisterValues) {
     const { error } = await authClient.signUp.email({
+      username: values.username,
       email: values.email,
       password: values.password,
       name: values.username,
-      username: values.username.toLowerCase(),
       displayUsername: values.username,
     });
  
