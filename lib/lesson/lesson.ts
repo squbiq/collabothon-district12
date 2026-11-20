@@ -77,6 +77,7 @@ export async function getLesson(id: string): Promise<Lesson | null> {
     }
 
     console.warn(`Pominięto niepoprawny krok ${s.id} (${s.type}) w lekcji ${id}`);
+    console.warn(s.options);
     return [];
   });
 

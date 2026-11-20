@@ -70,7 +70,7 @@ model LessonStep {
   keyTakeaway  String? @db.Text
   scenario     String? @db.Text
   summary      String? @db.Text
-  keyTakeaways Json?   // string[] dla kroku "summary"
+  keyTakeaways Json?
 
   options DecisionOption[]
   lesson  Lesson           @relation(fields: [lessonId], references: [id], onDelete: Cascade)

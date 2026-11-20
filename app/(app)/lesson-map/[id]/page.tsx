@@ -14,11 +14,7 @@ async function LessonContent({ params }: { params: Promise<{ id: string }> }) {
   return <LessonPlayer lesson={lesson} />;
 }
 
-export default function LessonPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function LessonPage({ params, }: { params: Promise<{ id: string }>; }) {
   return (
     <Suspense
       fallback={
