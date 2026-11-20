@@ -1,3 +1,3 @@
 export * from './users';
 export * from './steps';
-export * from './topics';
+export * from './lesson';

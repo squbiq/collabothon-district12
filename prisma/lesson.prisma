@@ -1,0 +1,107 @@
+// Odpowiednik PersonaType ('starter' | 'family').
+// Jeśli ten enum masz już w auth.prisma, usuń go stąd.
+enum PersonaType {
+  starter
+  family
+}
+
+// Odpowiednik discriminatora `type` w LessonStep
+enum StepType {
+  story
+  concept
+  decision
+  summary
+}
+
+// Odpowiednik LessonStatus
+enum LessonStatus {
+  locked
+  active
+  completed
+}
+
+// Lekcja (odpowiednik interfejsu Lesson)
+model Lesson {
+  id               String  @id @default(cuid())
+  order            Int
+  chapterTitle     String
+  title            String
+  description      String  @db.Text
+  estimatedMinutes Int
+
+  // Zasób odblokowywany po ukończeniu lekcji (opcjonalny).
+  // Jeśli masz model Asset, zamień na relację:
+  //   unlockAsset   Asset? @relation(fields: [unlockAssetId], references: [id])
+  unlockAssetId    String?
+
+  targetPersonas   LessonPersona[]
+  steps            LessonStep[]
+  progress         UserLessonProgress[]
+
+  @@index([order])
+}
+
+// Odpowiednik targetPersonas: PersonaType[]
+// (MySQL nie obsługuje list enumów, więc osobna tabela)
+model LessonPersona {
+  lessonId String
+  persona  PersonaType
+  lesson   Lesson      @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@id([lessonId, persona])
+}
+
+// Krok lekcji. Jedna tabela na wszystkie 4 typy kroków:
+// wypełnione są tylko pola pasujące do `type`, reszta zostaje NULL.
+//
+//   story    -> narrative
+//   concept  -> explanation, keyTakeaway
+//   decision -> scenario + options (tabela DecisionOption)
+//   summary  -> summary, keyTakeaways
+model LessonStep {
+  id       String   @id @default(cuid())
+  lessonId String
+  order    Int      // kolejność kroku w lekcji
+  type     StepType
+  title    String
+
+  narrative    String? @db.Text
+  explanation  String? @db.Text
+  keyTakeaway  String? @db.Text
+  scenario     String? @db.Text
+  summary      String? @db.Text
+  keyTakeaways Json?   // string[] dla kroku "summary"
+
+  options DecisionOption[]
+  lesson  Lesson           @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([lessonId, order])
+}
+
+// Opcja w kroku typu "decision"
+model DecisionOption {
+  id        String  @id @default(cuid())
+  stepId    String
+  order     Int
+  label     String
+  isOptimal Boolean @default(false)
+  feedback  String  @db.Text
+
+  step LessonStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@index([stepId])
+}
+
+// Status lekcji jest osobny dla każdego użytkownika,
+// dlatego nie ma go w modelu Lesson
+model UserLessonProgress {
+  userId      String
+  lessonId    String
+  status      LessonStatus @default(locked)
+  completedAt DateTime?
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@id([userId, lessonId])
+}
