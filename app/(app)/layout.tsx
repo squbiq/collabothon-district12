@@ -24,6 +24,9 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
           <Link href={"/arena"} className={buttonVariants({ size: "xl" })} >
             <BookOpen className="size-5" /> Arena
           </Link>
+          <Link href={"/panel"} className={buttonVariants({ size: "xl" })} >
+            <BookOpen className="size-5" /> Panel
+          </Link>
         </section>
 
         <section>
@@ -34,7 +37,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
 
       </section>
 
-      <section className="w-dvw h-full flex justify-center items-center">
+      <section className="w-full h-full flex justify-center items-start box-border overflow-x-hidden!">
         {children}
       </section>
     </section>

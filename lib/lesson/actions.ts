@@ -11,6 +11,8 @@ import {
   type StepInput,
 } from "@/types/lesson-input";
 import { ChapterOption, LessonSummary, LessonDetails } from "@/types/lesson-input";
+import { toLessonBase } from "./mappers";
+import { int } from "zod";
 
 type StepCreate = {
   order: number;
@@ -164,23 +166,201 @@ export async function createLesson(
 
 // 1. Pobiera listę rozdziałów do pierwszego Selecta
 export async function getChapters(): Promise<ChapterOption[]> { 
-    throw new Error();
+    const rows = await prisma.chapter.findMany({
+      orderBy : { orderNumber : "asc" },
+    });
+
+    return rows.map((row) => (
+      { id: row.id, title: row.chapterTitle }
+    ));
  }
 
 // 2. Pobiera listę lekcji dla wybranego rozdziału do drugiego Selecta
 export async function getLessonsByChapter(chapterId: string): Promise<LessonSummary[]> { 
-    throw new Error();
+    const rows = await prisma.lesson.findMany({
+      where: { chapterId },
+      orderBy: { order: "asc" },
+      select: {
+        id: true,
+        title: true,
+        order: true,
+      },
+    });
+
+    return rows;
  }
 
 // 3. Pobiera pełne dane jednej lekcji (wraz z krokami), aby wypełnić formularz
-export async function getLessonById(lessonId: string): Promise<LessonDetails | null> { 
-    throw new Error();
- }
+export async function getLessonById(lessonId: string): Promise<LessonDetails | null> {
+  const row = await prisma.lesson.findUnique({
+    where: { id: lessonId },
+    include: {
+      targetPersonas: true,
+      steps: {
+        orderBy: { order: "asc" },
+        include: {
+          options: { orderBy: { order: "asc" } },
+        },
+      },
+    },
+  });
 
-// 4. Zapisuje zmiany istniejącej lekcji (odpowiednik createLesson)
+  if (!row) return null;
+
+  return {
+    id: row.id,
+    order: row.order,
+    chapterId: row.chapterId, // <-- teraz bezpośrednio chapterId
+    title: row.title,
+    description: row.description,
+    estimatedMinutes: row.estimatedMinutes,
+    unlockAssetId: row.unlockAssetId,
+    targetPersonas: row.targetPersonas.map((p) => p.persona),
+    steps: row.steps.map((step): StepInput => {
+      switch (step.type) {
+        case "story":
+          return {
+            type: "story",
+            title: step.title,
+            narrative: step.narrative ?? "",
+          };
+        case "concept":
+          return {
+            type: "concept",
+            title: step.title,
+            explanation: step.explanation ?? "",
+            keyTakeaway: step.keyTakeaway ?? "",
+          };
+        case "decision":
+          return {
+            type: "decision",
+            title: step.title,
+            scenario: step.scenario ?? "",
+            options: step.options.map((o) => ({
+              label: o.label,
+              isOptimal: o.isOptimal,
+              feedback: o.feedback,
+            })),
+          };
+        case "summary":
+          return {
+            type: "summary",
+            title: step.title,
+            summary: step.summary ?? "",
+            keyTakeaways: Array.isArray(step.keyTakeaways)
+              ? (step.keyTakeaways as string[])
+              : [],
+          };
+      }
+    }),
+  };
+}
+
 export async function updateLesson(
   lessonId: string,
   input: CreateLessonInput
-): Promise<{ ok: true } | { ok: false; error: string }> { 
-    throw new Error();
- }
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    if (!input.chapterId || !input.title.trim()) {
+      return { ok: false, error: "Rozdział oraz tytuł lekcji są wymagane." };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      const existingLesson = await tx.lesson.findUnique({
+        where: { id: lessonId },
+        select: { id: true, chapterId: true, order: true },
+      });
+
+      if (!existingLesson) {
+        throw new Error("Nie znaleziono lekcji do edycji.");
+      }
+
+      // Wylicz `order`, jeśli użytkownik zostawił pole puste (null)
+      let lessonOrder = input.order;
+      if (lessonOrder === null) {
+        if (input.chapterId === existingLesson.chapterId) {
+          lessonOrder = existingLesson.order;
+        } else {
+          const lastLesson = await tx.lesson.findFirst({
+            where: { chapterId: input.chapterId },
+            orderBy: { order: "desc" },
+            select: { order: true },
+          });
+          lessonOrder = (lastLesson?.order ?? 0) + 1;
+        }
+      }
+
+      // Wyczyść stare relacje
+      await tx.lessonPersona.deleteMany({ where: { lessonId } });
+      await tx.lessonStep.deleteMany({ where: { lessonId } });
+
+      // Zaktualizuj lekcję
+      await tx.lesson.update({
+        where: { id: lessonId },
+        data: {
+          chapterId: input.chapterId,
+          order: lessonOrder,
+          title: input.title.trim(),
+          description: input.description.trim(),
+          estimatedMinutes: input.estimatedMinutes,
+          unlockAssetId: input.unlockAssetId,
+          targetPersonas: {
+            create: input.targetPersonas.map((persona) => ({
+              persona,
+            })),
+          },
+          steps: {
+            create: input.steps.map((step, index) => {
+              const baseStep = {
+                order: index + 1,
+                type: step.type,
+                title: step.title,
+              };
+
+              switch (step.type) {
+                case "story":
+                  return { ...baseStep, narrative: step.narrative };
+                case "concept":
+                  return {
+                    ...baseStep,
+                    explanation: step.explanation,
+                    keyTakeaway: step.keyTakeaway,
+                  };
+                case "decision":
+                  return {
+                    ...baseStep,
+                    scenario: step.scenario,
+                    options: {
+                      create: step.options.map((opt, optIndex) => ({
+                        order: optIndex + 1,
+                        label: opt.label,
+                        isOptimal: opt.isOptimal,
+                        feedback: opt.feedback,
+                      })),
+                    },
+                  };
+                case "summary":
+                  return {
+                    ...baseStep,
+                    summary: step.summary,
+                    keyTakeaways: step.keyTakeaways,
+                  };
+              }
+            }),
+          },
+        },
+      });
+    });
+
+    return { ok: true };
+  } catch (err) {
+    console.error("Błąd podczas aktualizacji lekcji:", err);
+    return {
+      ok: false,
+      error:
+        err instanceof Error
+          ? err.message
+          : "Nie udało się zapisać zmian w lekcji.",
+    };
+  }
+}

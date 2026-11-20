@@ -379,7 +379,7 @@ export function LessonForm() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 items-start">
       {/* Panel wyboru trybu: Nowa lekcja vs Edycja istniejącej */}
       <Card className="border-dashed bg-muted/30">
         <CardHeader className="pb-3">
