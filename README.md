@@ -24,3 +24,5 @@ CHALLENGES ????????????
 We believe our prototype demonstrates great potential, and we are satisfied with what we have accomplished. Personally, the feature we are most proud of is the concept behind Daily Lessons and streaks. In the future, we hope to introduce AI-powered features, such as lesson summaries, score analysis, and personalized feedback to help users improve and achieve their goals.
 
 We also plan to continuously update the content and expand the number of available learning paths and daily lessons to ensure that all materials remain up-to-date, relevant, and accurate.
+## Source Code Repository
+[GitHub - Collabothon District 12](https://github.com/squbiq/collabothon-district12)
