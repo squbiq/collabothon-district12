@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { getLessons } from "@/lib/lesson/lessons";
 import type { LessonStatus } from "@/types/lesson";
+import { Button, buttonVariants } from "@/components/ui/button";
 
 const styles: Record<
   LessonStatus,
@@ -82,6 +83,7 @@ export default function LessonMapPage() {
         </header>
 
         <Suspense fallback={<p className="font-bold text-slate-500">Ładowanie lekcji…</p>}>
+          <Link href={"/lesson-map/lesson-creation"} className={buttonVariants()} >CREATE</Link>
           <LessonList />
         </Suspense>
       </div>
