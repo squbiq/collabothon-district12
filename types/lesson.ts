@@ -17,7 +17,6 @@ export interface LessonBase {
   pathId?: LessonPathId;
   chapterId: string;
   chapterNumber: number;
-  chapterTitle: string;
   title: string;
   description: string;
   estimatedMinutes: number;

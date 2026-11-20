@@ -28,7 +28,6 @@ export function toLessonBase(row: LessonRow): LessonBase {
     pathId: toPathId(row.pathId),
     chapterId: row.chapterId,
     chapterNumber: row.chapter.orderNumber,
-    chapterTitle: row.chapter.chapterTitle,
     title: row.title,
     description: row.description,
     estimatedMinutes: row.estimatedMinutes,

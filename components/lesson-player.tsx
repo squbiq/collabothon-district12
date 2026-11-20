@@ -3,8 +3,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import type { Lesson } from "@/types/lesson";
+import { completeLesson } from "@/lib/lesson/complete_lesson";
 import type {
   ConceptStep,
   DecisionStep,
@@ -15,7 +16,8 @@ import type {
 export function LessonPlayer({ lesson }: { lesson: Lesson }) {
   const [index, setIndex] = useState(0);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
-
+  const [saved, setSaved] = useState(false);
+  const [, startTransition] = useTransition();
   const total = lesson.steps.length;
   const finished = index >= total;
   const step = lesson.steps[index];
@@ -23,8 +25,18 @@ export function LessonPlayer({ lesson }: { lesson: Lesson }) {
   const canContinue = step?.type !== "decision" || selectedOptionId !== null;
 
   function next() {
+    const isLast = index + 1 === total;
+
     setIndex((i) => i + 1);
     setSelectedOptionId(null);
+
+    // Zapis ukończenia lekcji (progress + streak) przy kliknięciu "Zakończ"
+    if (isLast && !saved) {
+      startTransition(async () => {
+        await completeLesson(lesson.id);
+        setSaved(true);
+      });
+    }
   }
 
   function restart() {
@@ -42,7 +54,6 @@ export function LessonPlayer({ lesson }: { lesson: Lesson }) {
   }
 
   if (finished) {
-    // TODO: tutaj wywołaj zapis ukończenia lekcji (Server Action -> CompleteLesson)
     return (
       <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-6 px-4 py-16 text-center">
         <h1 className="text-3xl font-extrabold text-slate-800">Lekcja ukończona!</h1>
