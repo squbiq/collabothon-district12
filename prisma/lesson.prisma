@@ -20,8 +20,14 @@ enum LessonStatus {
   completed
 }
 
+model Topic {
+  id String @id @default(cuid())
+  topicTitle String
+}
+
 model Chapter {
   id           String @id @default(cuid())
+  topicId      String
   orderNumber  Int
   chapterTitle String
 

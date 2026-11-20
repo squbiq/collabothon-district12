@@ -11,7 +11,6 @@ import type { PersonaType } from "@/types/users";
 interface LessonRow {
   id: string;
   order: number;
-  chapterTitle: string;
   title: string;
   description: string;
   estimatedMinutes: number;
@@ -23,7 +22,6 @@ export function toLessonBase(row: LessonRow): LessonBase {
   return {
     id: row.id,
     order: row.order,
-    chapterTitle: row.chapterTitle,
     title: row.title,
     description: row.description,
     estimatedMinutes: row.estimatedMinutes,

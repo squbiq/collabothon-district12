@@ -20,7 +20,7 @@ export type StepInput =
 
 export interface CreateLessonInput {
   order: number | null; // null = dodaj na końcu
-  chapterTitle: string;
+  chapterId: string;
   title: string;
   description: string;
   estimatedMinutes: number;

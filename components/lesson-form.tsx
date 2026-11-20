@@ -223,7 +223,7 @@ export function LessonForm() {
 
   // --- Stany pól formularza ---
   const [order, setOrder] = useState("");
-  const [chapterTitle, setChapterTitle] = useState("");
+  const [chapterId, setChapterId] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [estimatedMinutes, setEstimatedMinutes] = useState("");
@@ -255,7 +255,7 @@ export function LessonForm() {
     setSelectedChapterId("");
     setLessonsInChapter([]);
     setOrder("");
-    setChapterTitle("");
+    setChapterId("");
     setTitle("");
     setDescription("");
     setEstimatedMinutes("");
@@ -275,7 +275,7 @@ export function LessonForm() {
 
     const chosenChapter = chapters.find((c) => c.id === chapterId);
     if (chosenChapter) {
-      setChapterTitle(chosenChapter.title);
+      setChapterId(chosenChapter.title);
     }
 
     setIsLoadingLessons(true);
@@ -304,7 +304,7 @@ export function LessonForm() {
       }
 
       setOrder(lesson.order !== null ? String(lesson.order) : "");
-      setChapterTitle(lesson.chapterTitle);
+      setChapterId(lesson.chapterId);
       setTitle(lesson.title);
       setDescription(lesson.description);
       setEstimatedMinutes(String(lesson.estimatedMinutes));
@@ -355,7 +355,7 @@ export function LessonForm() {
 
     const input: CreateLessonInput = {
       order: order.trim() === "" ? null : Number(order),
-      chapterTitle,
+      chapterId,
       title,
       description,
       estimatedMinutes: Number(estimatedMinutes),
@@ -488,10 +488,10 @@ export function LessonForm() {
             <CardContent className="flex flex-col gap-4">
               <Field label="Rozdział" htmlFor="chapterTitle">
                 <Input
-                  id="chapterTitle"
+                  id="chapterId"
                   required
-                  value={chapterTitle}
-                  onChange={(e) => setChapterTitle(e.target.value)}
+                  value={chapterId}
+                  onChange={(e) => setChapterId(e.target.value)}
                 />
               </Field>
 

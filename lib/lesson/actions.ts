@@ -38,7 +38,7 @@ export async function createLesson(
   //   if (!session) return fail("Musisz być zalogowany.");
 
   // Dane z formularza traktujemy jako niezaufane: czyścimy i walidujemy od nowa
-  const chapterTitle = clean(input.chapterTitle);
+  const chapterId = clean(input.chapterId);
   const title = clean(input.title);
   const description = clean(input.description);
   const estimatedMinutes = Number(input.estimatedMinutes);
@@ -47,7 +47,7 @@ export async function createLesson(
     ...new Set((input.targetPersonas ?? []).filter((p) => PERSONAS.includes(p))),
   ];
 
-  if (!chapterTitle || !title || !description) {
+  if (!chapterId || !title || !description) {
     return fail("Uzupełnij rozdział, tytuł i opis lekcji.");
   }
   if (!Number.isInteger(estimatedMinutes) || estimatedMinutes < 1) {
@@ -143,7 +143,7 @@ export async function createLesson(
     const lesson = await prisma.lesson.create({
       data: {
         order,
-        chapterTitle,
+        chapterId,
         title,
         description,
         estimatedMinutes,

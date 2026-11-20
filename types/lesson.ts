@@ -13,7 +13,6 @@ export type LessonStatus = "locked" | "active" | "completed";
 export interface LessonBase {
   id: string;
   order: number;
-  chapterTitle: string;
   title: string;
   description: string;
   estimatedMinutes: number;
