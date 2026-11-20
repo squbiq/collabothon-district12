@@ -10,8 +10,9 @@ model User {
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
   banned             Boolean           @default(false)
-  banReason         String?           @db.Text
-  banExpiresAt       DateTime?           @db.Timestamp(3)
+  banReason          String?           @db.Text
+  banExpires         DateTime?         @db.Timestamp(3)
+  experience         Int               @default(0) @db.UnsignedInt
   sessions           Session[]
   accounts           Account[]
   userLessonProgress UserLessonProgress[]

@@ -45,6 +45,7 @@ model Lesson {
   title            String
   description      String  @db.Text
   estimatedMinutes Int
+  experience       Int     @default(0) @db.UnsignedInt
 
   // Zasób odblokowywany po ukończeniu lekcji (opcjonalny).
   // Jeśli masz model Asset, zamień na relację:
