@@ -96,7 +96,7 @@ export default function LessonMapPage({
   searchParams: Promise<{ path?: string }>;
 }) {
   return (
-    <section className="flex min-h-full w-full justify-center px-4 py-10">
+    <section className="flex min-h-full w-full justify-center ">
       <div className="flex w-full max-w-xl flex-col gap-6">
         <Suspense
           fallback={<p className="font-bold text-muted-foreground">Ładowanie lekcji…</p>}
