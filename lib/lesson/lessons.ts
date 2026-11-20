@@ -12,7 +12,7 @@ export async function getLessons(userId?: string): Promise<LessonMapItem[]> {
   const rows = await prisma.lesson.findMany({
     orderBy: { order: "asc" },
     include: {
-      chapter: { select: { chapterTitle: true } },
+      chapter: { select: { orderNumber: true, chapterTitle: true } },
       targetPersonas: true,
       _count: { select: { steps: true } },
       // pusty userId nie pasuje do żadnego wiersza
