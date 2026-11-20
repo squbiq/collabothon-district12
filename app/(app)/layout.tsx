@@ -8,13 +8,13 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
       <section className="w-dvw h-16 px-4 py-1 flex flex-row border justify-between items-center">
 
         <section>
-          Invest.io
+          finanz.io
         </section>
 
         <section className="flex flex-row gap-2">
           <Link href={"/daily-lesson"} className={buttonVariants()} >Daily lesson</Link>
           <Link href={"/topic"} className={buttonVariants()} >Topic</Link>
-          <Link href={"/kahoot"} className={buttonVariants()} >Kahoot</Link>
+          <Link href={"/lesson-map"} className={buttonVariants()} >Lessons</Link>
         </section>
 
         <section>
