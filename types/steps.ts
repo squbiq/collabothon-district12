@@ -38,7 +38,7 @@ export interface SummaryStep extends BaseStep {
     keyTakeaways: string[];
 }
 
-export type Step = StoryStep 
+export type LessonStep = StoryStep 
 | ConceptStep 
 | DecisionStep 
 | SummaryStep;
