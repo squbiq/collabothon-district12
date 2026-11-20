@@ -6,12 +6,13 @@
 
 import type { LessonBase } from "@/types/lesson";
 import type { PersonaType } from "@/types/users";
+import { toPathId } from "./paths";
 
 // Minimalny kształt wiersza lekcji z relacją targetPersonas (include: { targetPersonas: true }).
 interface LessonRow {
   id: string;
   order: number;
-  chapterTitle: string;
+  pathId: string;
   title: string;
   description: string;
   estimatedMinutes: number;
@@ -23,7 +24,7 @@ export function toLessonBase(row: LessonRow): LessonBase {
   return {
     id: row.id,
     order: row.order,
-    chapterTitle: row.chapterTitle,
+    pathId: toPathId(row.pathId),
     title: row.title,
     description: row.description,
     estimatedMinutes: row.estimatedMinutes,

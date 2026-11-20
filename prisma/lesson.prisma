@@ -1,3 +1,5 @@
+// prisma/lesson.prisma
+
 // Odpowiednik PersonaType ('starter' | 'family').
 // Jeśli ten enum masz już w auth.prisma, usuń go stąd.
 enum PersonaType {
@@ -20,11 +22,26 @@ enum LessonStatus {
   completed
 }
 
+model Topic {
+  id String @id @default(cuid())
+  topicTitle String
+}
+
+model Chapter {
+  id           String @id @default(cuid())
+  topicId      String
+  orderNumber  Int
+  chapterTitle String
+
+  Lessons      Lesson[]
+}
+
 // Lekcja (odpowiednik interfejsu Lesson)
 model Lesson {
   id               String  @id @default(cuid())
   order            Int
-  chapterTitle     String
+  pathId           String  @default("stock-investor")
+  chapterId     String
   title            String
   description      String  @db.Text
   estimatedMinutes Int
@@ -37,6 +54,8 @@ model Lesson {
   targetPersonas   LessonPersona[]
   steps            LessonStep[]
   progress         UserLessonProgress[]
+
+  chapter          Chapter      @relation(fields: [chapterId], references: [id], onDelete: Cascade)
 
   @@index([order])
 }
@@ -70,7 +89,7 @@ model LessonStep {
   keyTakeaway  String? @db.Text
   scenario     String? @db.Text
   summary      String? @db.Text
-  keyTakeaways Json?   // string[] dla kroku "summary"
+  keyTakeaways Json?
 
   options DecisionOption[]
   lesson  Lesson           @relation(fields: [lessonId], references: [id], onDelete: Cascade)

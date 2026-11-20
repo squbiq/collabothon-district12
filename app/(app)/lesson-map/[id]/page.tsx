@@ -1,4 +1,4 @@
-// app/(app)/lesson/[id]/page.tsx
+// app/(app)/lesson-map/[id]/page.tsx
 
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
@@ -14,11 +14,7 @@ async function LessonContent({ params }: { params: Promise<{ id: string }> }) {
   return <LessonPlayer lesson={lesson} />;
 }
 
-export default function LessonPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function LessonPage({ params }: { params: Promise<{ id: string }> }) {
   return (
     <Suspense
       fallback={

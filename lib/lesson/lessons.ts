@@ -12,6 +12,7 @@ export async function getLessons(userId?: string): Promise<LessonMapItem[]> {
   const rows = await prisma.lesson.findMany({
     orderBy: { order: "asc" },
     include: {
+      chapter: { select: { chapterTitle: true } },
       targetPersonas: true,
       _count: { select: { steps: true } },
       // pusty userId nie pasuje do żadnego wiersza
@@ -34,6 +35,6 @@ export async function getLessons(userId?: string): Promise<LessonMapItem[]> {
       status = "locked";
     }
 
-    return { ...toLessonBase(row), status, stepsCount: row._count.steps };
+    return { ...toLessonBase(row), chapterTitle: row.chapter.chapterTitle , status, stepsCount: row._count.steps };
   });
 }
