@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import logo from "@/public/logo-all.svg"
 import { cn } from "cn";
-import { BookOpen, CalendarDays, LogIn, LogOut, LucideIcon, Menu, Swords, User as UserIcon } from "lucide-react";
+import { BookOpen, CalendarDays, LogIn, LogOut, LucideIcon, Menu, Swords, Trophy, User as UserIcon } from "lucide-react";
 import { ChunkyButton, chunkyButtonVariants } from "@/components/shared/chunky-button";
 import { Suspense, useState } from "react";
 import { type User, useUser } from "@/components/context/user-context";
@@ -20,8 +20,8 @@ const buttonStyle = (tone: VariantProps<typeof chunkyButtonVariants>["tone"] = "
 const navLinks: Record<string, { title: string, icon: LucideIcon }> = {
   "/daily-lesson": { title: "Daily lesson", icon: CalendarDays },
   "/lesson-map":   { title: "Lessons",      icon: BookOpen },
-  "/arena":        { title: "Arena",        icon: Swords },
-  // "/ranking":      { title: "Ranking",      icon: Trophy },
+  //"/arena":        { title: "Arena",        icon: Swords },
+   "/rankings":      { title: "Rankings",      icon: Trophy },
 };
 
 

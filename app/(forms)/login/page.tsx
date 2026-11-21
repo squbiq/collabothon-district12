@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import * as z from "zod";
 
-import { Button } from "@/components/ui/button";
+import { ChunkyButton } from "@/components/shared/chunky-button";
 import {
   Card,
   CardContent,
@@ -115,14 +115,15 @@ export default function LoginPage() {
           </form>
         </CardContent>
         <CardFooter className="flex flex-col gap-3">
-          <Button
+          <ChunkyButton
             type="submit"
+            tone="success"
             form="form-login"
             className="w-full"
             disabled={form.formState.isSubmitting}
           >
             {form.formState.isSubmitting ? "Logging in..." : "Login"}
-          </Button>
+          </ChunkyButton>
           <p className="text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
             <Link

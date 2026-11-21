@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import * as z from "zod";
  
-import { Button } from "@/components/ui/button";
+import { ChunkyButton } from "@/components/shared/chunky-button";
 import {
   Card,
   CardContent,
@@ -149,8 +149,9 @@ export default function RegisterPage() {
           </form>
         </CardContent>
         <CardFooter className="flex flex-col gap-3">
-          <Button
+          <ChunkyButton
             type="submit"
+            tone="success"
             form="form-register"
             className="w-full"
             disabled={form.formState.isSubmitting}
@@ -158,7 +159,7 @@ export default function RegisterPage() {
             {form.formState.isSubmitting
               ? "Creating account..."
               : "Create account"}
-          </Button>
+          </ChunkyButton>
           <p className="text-sm text-muted-foreground">
             Have an account?{" "}
             <Link
