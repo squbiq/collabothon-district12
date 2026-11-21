@@ -30,9 +30,8 @@ export async function createTopic(title: string): Promise<Result<{ id: string }>
   if (!topicTitle) return fail("Enter a topic name.");
 
   try {
-    const last = await prisma.topic.aggregate({ _max: { orderNumber: true } });
     const topic = await prisma.topic.create({
-      data: { topicTitle, orderNumber: (last._max.orderNumber ?? 0) + 1 },
+      data: { topicTitle },
       select: { id: true },
     });
     refresh();

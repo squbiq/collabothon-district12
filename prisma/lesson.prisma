@@ -27,7 +27,7 @@ enum LessonStatus {
 model Topic {
   id          String @id @default(cuid())
   topicTitle  String
-  orderNumber Int    @default(0) // kolejność zakładek na mapie lekcji
+  //orderNumber Int    @default(0) // kolejność zakładek na mapie lekcji
 
   Chapter     Chapter[]
 }

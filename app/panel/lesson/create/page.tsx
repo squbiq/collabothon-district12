@@ -5,8 +5,10 @@ import { Suspense } from "react";
 import { getTopics } from "@/lib/lesson/topics";
 import { getChapterOptions } from "@/lib/lesson/admin-queries";
 import { LessonDataForm } from "@/components/feature/lesson/admin/lesson-data-form";
+import { connection } from "next/server";
 
 async function CreateLessonContent() {
+  await connection();
   const [topics, chapters] = await Promise.all([getTopics(), getChapterOptions()]);
   return <LessonDataForm topics={topics} chapters={chapters} />;
 }

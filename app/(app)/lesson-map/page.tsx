@@ -11,8 +11,8 @@ import { CreateLessonLink } from "@/components/feature/lesson/map/create-lesson-
 type SearchParams = Promise<{ path?: string }>;
 
 async function PathContent({ searchParams }: { searchParams: SearchParams }) {
-  const { path } = await searchParams;
   await connection();
+  const { path } = await searchParams;
   const topics = await getTopics();
   const current = resolveTopic(topics, path);
 
