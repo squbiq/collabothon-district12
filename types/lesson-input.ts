@@ -24,6 +24,7 @@ export interface CreateLessonInput {
   title: string;
   description: string;
   estimatedMinutes: number;
+  experience: number;
   unlockAssetId: string | null;
   targetPersonas: PersonaType[];
   steps: StepInput[];
