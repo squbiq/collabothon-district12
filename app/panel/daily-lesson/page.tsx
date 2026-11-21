@@ -7,6 +7,7 @@ import { Suspense } from "react";
 import { requireAdmin } from "@/lib/session";
 import { Plus } from "lucide-react";
 import { chunkyButtonVariants } from "@/components/shared/chunky-button";
+import { DailyTransferLoader } from "@/components/feature/daily/admin/daily-transfer-loader";
 import { DailyPoolList } from "@/components/feature/daily/admin/daily-pool-list";
 import { getDailyPool } from "@/lib/daily/admin-queries";
 
@@ -36,9 +37,15 @@ export default function DailyLessonAdminPage() {
             Pool of tasks: one correct answer and any number of wrong ones. Every user gets the same task each day.
           </p>
         </div>
-        <Link href="/panel/daily-lesson/new" className={chunkyButtonVariants({ tone: "success" })}>
-          <Plus /> New task
-        </Link>
+        {/* ikony import/eksport po lewej od „New task" */}
+        <div className="flex shrink-0 items-center gap-2">
+          <Suspense fallback={null}>
+            <DailyTransferLoader />
+          </Suspense>
+          <Link href="/panel/daily-lesson/new" className={chunkyButtonVariants({ tone: "success" })}>
+            <Plus /> New task
+          </Link>
+        </div>
       </header>
       <Suspense fallback={<p className="text-muted-foreground">Loading…</p>}>
         <PoolContent />

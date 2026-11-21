@@ -4,6 +4,12 @@ import { prisma } from "@/lib/prisma";
 import type { LessonMapItem, LessonStatus } from "@/types/lesson";
 import { toLessonBase } from "./mappers";
 
+/** Status jednej lekcji dla użytkownika (do ochrony trasy odtwarzacza). null = nie ma takiej lekcji. */
+export async function getLessonStatus(userId: string, lessonId: string): Promise<{ status: LessonStatus; topicId: string } | null> {
+  const lesson = (await getLessons(userId)).find((l) => l.id === lessonId);
+  return lesson ? { status: lesson.status, topicId: lesson.topicId } : null;
+}
+
 // Lista lekcji do mapy lekcji.
 // Status liczymy tak: ukończone (z UserLessonProgress) -> "completed",
 // pierwsza nieukończona w danej ścieżce -> "active", reszta -> "locked".

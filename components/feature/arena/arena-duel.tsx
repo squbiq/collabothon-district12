@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Bot, Trophy, User } from "lucide-react";
 import { ChunkyButton } from "@/components/shared/chunky-button";
 import { answerQuestion, startDuel } from "@/lib/arena/actions";
-import { ARENA_ROUNDS, BOT_DIFFICULTIES, BOT_DIFFICULTY_KEYS, XP_REWARDS, type BotDifficulty } from "@/lib/arena/config";
+import { BOT_DIFFICULTIES, BOT_DIFFICULTY_KEYS, XP_REWARDS, type BotDifficulty } from "@/lib/arena/config";
 import { cn } from "@/lib/utils";
 import type { ArenaQuestion, DuelOutcome } from "@/types/arena";
 import { ArenaCard, ErrorLine, OptionButton, ScoreColumn, type OptionState } from "./arena-parts";
@@ -23,7 +23,7 @@ const OUTCOME_TITLES: Record<DuelOutcome, string> = {
   loss: "The bot won this time",
 };
 
-export function ArenaDuel({ onExit }: { onExit: () => void }) {
+export function ArenaDuel({ rounds, onExit }: { rounds: number; onExit: () => void }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [phase, setPhase] = useState<Phase>("idle");
@@ -95,7 +95,7 @@ export function ArenaDuel({ onExit }: { onExit: () => void }) {
         <Trophy className="size-12 text-amber-500" />
         <h2 className="text-2xl font-extrabold">Challenge the bot</h2>
         <p className="text-muted-foreground">
-          Answer {ARENA_ROUNDS} real-world market scenarios. Whoever gets more right wins.
+          Answer {rounds} real-world market {rounds === 1 ? "scenario" : "scenarios"}. Whoever gets more right wins.
         </p>
 
         <div role="radiogroup" aria-label="Bot difficulty" className="flex w-full flex-wrap justify-center gap-2">

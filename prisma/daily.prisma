@@ -8,6 +8,7 @@ model DailyLesson {
   title       String
   scenario    String              @db.Text
   rewardExp   Int                 @default(100) @db.UnsignedInt
+  // Czy zadanie może trafić też do areny (walka z botem / gra online). Admin przełącza to w formularzu zadania.
 
   options     DailyOption[]
   progress    UserDailyProgress[]

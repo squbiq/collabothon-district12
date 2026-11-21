@@ -101,7 +101,7 @@ const fullSteps = (topic: string): SeedStep[] => [
     type: StepType.decision,
     title: "What would you do?",
     data: {
-      scenario: "You receive 1000 PLN. Rent is already paid. What is your next move?",
+      scenario: "You receive €1,000. Rent is already paid. What is your next move?",
       options: [
         { id: "option-1", label: "Spend it all on something fun", isOptimal: false, feedback: "Fun matters, but nothing is left for emergencies." },
         { id: "option-2", label: "Split it: needs, savings, fun", isOptimal: true, feedback: "A split keeps you safe today and ready for tomorrow." },
@@ -276,15 +276,191 @@ async function seedProgress() {
   }
 }
 
+// ---------- Zadania dnia (pula pytań, także dla Areny) ----------
+
+type SeedDaily = {
+  category: string;
+  title: string;
+  scenario: string;
+  rewardExp: number;
+  options: [label: string, isOptimal: boolean, feedback: string][];
+};
+
+const DAILY: SeedDaily[] = [
+  {
+    category: "Market Psychology", title: "The market drops 12%", rewardExp: 40,
+    scenario: "Your ETF portfolio of €8,000 lost 12% in a month. Headlines are alarming. What do you do?",
+    options: [
+      ["Sell everything to stop the losses", false, "Selling after a drop locks in the loss and usually means missing the recovery."],
+      ["Stick to the plan and keep investing", true, "Correct. A long-term plan should not change because of short-term noise."],
+      ["Wait for a few months and decide later", false, "Waiting without a rule often turns into emotional decisions."],
+    ],
+  },
+  {
+    category: "Inflation", title: "Savings at 0% interest", rewardExp: 30,
+    scenario: "You keep €10,000 on a current account paying 0% while inflation is 3%. What happens over a year?",
+    options: [
+      ["Nothing, the balance is still €10,000", false, "The number stays, but it buys about 3% less."],
+      ["You lose about €300 of purchasing power", true, "Correct. Inflation silently erodes idle cash."],
+      ["You gain because prices will fall", false, "With positive inflation, prices rise on average."],
+    ],
+  },
+  {
+    category: "Diversification", title: "A hot tech stock", rewardExp: 40,
+    scenario: "A colleague says a single tech stock doubled this year. You have €5,000 to invest. What is the most sensible move?",
+    options: [
+      ["Put everything into that stock", false, "Concentrating on one company is a very high risk."],
+      ["Spread across a broad, low-cost index fund", true, "Correct. Diversification reduces the risk of a single failure."],
+      ["Buy only after it doubles again", false, "Chasing trends is a common way to buy at the top."],
+    ],
+  },
+  {
+    category: "Emergency Fund", title: "An unexpected repair", rewardExp: 30,
+    scenario: "Your car needs a €1,200 repair. You have no savings but a credit card with 20% APR. What would have helped most?",
+    options: [
+      ["A higher credit limit", false, "More credit only makes expensive debt easier to take."],
+      ["An emergency fund of 3–6 months of expenses", true, "Correct. A cash buffer avoids costly borrowing."],
+      ["Investing all spare money in stocks", false, "Investments can be down exactly when you need the cash."],
+    ],
+  },
+  {
+    category: "Compound Interest", title: "Start early or invest more?", rewardExp: 40,
+    scenario: "Anna invests €200 a month from age 25, Ben invests €400 a month from age 35, both until 65 at the same return. Who ends up with more?",
+    options: [
+      ["Ben, because he invests more per month", false, "Ben invests less in total time, and misses ten years of compounding."],
+      ["Anna, because of 10 extra years of compounding", true, "Correct. Time in the market is a powerful factor."],
+      ["They end up with exactly the same", false, "Different timing means a different result."],
+    ],
+  },
+  {
+    category: "Fees", title: "The cost of a 2% fee", rewardExp: 40,
+    scenario: "Two funds have the same gross return. Fund A charges 0.2% per year, Fund B charges 2%. Over 30 years, what is the effect?",
+    options: [
+      ["It is negligible", false, "Fees compound too and can take a large share of the final value."],
+      ["Fund B can cost tens of percent of the final wealth", true, "Correct. Small annual fees add up massively."],
+      ["Fund B is better because it costs more", false, "Higher price does not mean higher return."],
+    ],
+  },
+  {
+    category: "Risk", title: "Risk and return", rewardExp: 30,
+    scenario: "An offer promises a guaranteed 25% return per year with no risk. What is the right reaction?",
+    options: [
+      ["Invest quickly before it ends", false, "Urgency is a classic pressure tactic."],
+      ["Treat it as a likely scam", true, "Correct. Higher returns always come with higher risk."],
+      ["Invest a small amount to test it", false, "Even small amounts feed a scam and are rarely returned."],
+    ],
+  },
+  {
+    category: "Budgeting", title: "Splitting your income", rewardExp: 30,
+    scenario: "You earn €2,500 net per month. Which approach follows the common 50/30/20 rule?",
+    options: [
+      ["€1,250 needs, €750 wants, €500 savings", true, "Correct. 50% needs, 30% wants, 20% savings and debt repayment."],
+      ["€500 needs, €750 wants, €1,250 savings", false, "That is unrealistic for most people's fixed costs."],
+      ["€2,000 wants, €500 needs", false, "Wants should not exceed needs in a stable budget."],
+    ],
+  },
+  {
+    category: "Taxes", title: "Gains and taxes", rewardExp: 30,
+    scenario: "You sold shares with a €1,500 profit. What should you remember?",
+    options: [
+      ["Profits are never taxed", false, "In most countries investment gains are taxed."],
+      ["Check the local capital gains rules and set money aside", true, "Correct. Rules differ by country, so plan for the tax."],
+      ["Only dividends are taxed", false, "Realised capital gains are usually taxed as well."],
+    ],
+  },
+  {
+    category: "Debt", title: "Which debt first?", rewardExp: 40,
+    scenario: "You have €3,000 extra. Debts: a €5,000 loan at 4% and a €2,000 credit card at 22%. What is the best use?",
+    options: [
+      ["Pay down the credit card", true, "Correct. The highest interest rate costs you the most."],
+      ["Pay down the 4% loan", false, "The lower rate costs less, so it can wait."],
+      ["Split evenly between both", false, "Splitting leaves the expensive debt growing longer."],
+    ],
+  },
+  {
+    category: "Dollar-Cost Averaging", title: "Invest in one go or monthly?", rewardExp: 40,
+    scenario: "You want to invest €6,000 but fear a market drop. Which approach reduces timing risk?",
+    options: [
+      ["Invest €500 each month for a year", true, "Correct. Regular investing smooths out the entry price."],
+      ["Wait until the market is clearly safe", false, "Nobody can reliably time the market."],
+      ["Invest only after a rise", false, "That means buying at higher prices."],
+    ],
+  },
+  {
+    category: "Scams", title: "A message from your \"bank\"", rewardExp: 30,
+    scenario: "You receive an SMS: \"Your account is blocked, confirm your PIN at this link.\" What do you do?",
+    options: [
+      ["Click and confirm the PIN", false, "Banks never ask for a PIN through a link."],
+      ["Ignore the link and contact the bank via its official app", true, "Correct. This is a typical phishing attempt."],
+      ["Reply asking if it is real", false, "Replying confirms your number is active."],
+    ],
+  },
+  {
+    category: "Retirement", title: "Retirement savings", rewardExp: 40,
+    scenario: "You are 30 and your employer matches pension contributions up to 5% of your salary. What is the smart move?",
+    options: [
+      ["Contribute enough to get the full match", true, "Correct. The match is an immediate, guaranteed return."],
+      ["Skip it, retirement is far away", false, "You lose free money and years of compounding."],
+      ["Contribute only 1%", false, "You would leave part of the match unused."],
+    ],
+  },
+  {
+    category: "Time Horizon", title: "Money needed in two years", rewardExp: 30,
+    scenario: "You need €15,000 for a down payment in 2 years. Where should it be kept?",
+    options: [
+      ["100% in a volatile stock fund", false, "Stocks can drop sharply in a short period."],
+      ["In a safe, easily accessible savings product", true, "Correct. Short horizons call for low-risk instruments."],
+      ["In a single cryptocurrency", false, "Very high volatility is unsuitable for a fixed deadline."],
+    ],
+  },
+  {
+    category: "Credit", title: "Minimum card payment", rewardExp: 30,
+    scenario: "Your card statement shows €1,000 due, with a €25 minimum payment. What is the best choice?",
+    options: [
+      ["Pay only the minimum", false, "Interest accrues on the rest and the debt lasts for years."],
+      ["Pay the full balance if you can", true, "Correct. Paying in full avoids interest entirely."],
+      ["Ignore it for a month", false, "Late fees and credit-score damage follow."],
+    ],
+  },
+  {
+    category: "Rebalancing", title: "Portfolio drift", rewardExp: 40,
+    scenario: "Your 60/40 stocks/bonds portfolio drifted to 75/25 after a rally. What does rebalancing mean here?",
+    options: [
+      ["Selling some stocks and buying bonds to return to 60/40", true, "Correct. It restores your intended risk level."],
+      ["Buying more stocks since they are winning", false, "That increases risk beyond your plan."],
+      ["Selling everything and starting over", false, "Rebalancing is a small adjustment, not a restart."],
+    ],
+  },
+];
+
+async function seedDaily() {
+  for (const [i, task] of DAILY.entries()) {
+    const id = `seed-daily-${i + 1}`;
+    const { options, ...fields } = task;
+    await prisma.dailyLesson.upsert({
+      where: { id },
+      create: { id, dateKey: null, ...fields },
+      update: fields,
+    });
+    // opcje odtwarzamy od zera (kolejność ma znaczenie)
+    await prisma.dailyOption.deleteMany({ where: { dailyLessonId: id } });
+    await prisma.dailyOption.createMany({
+      data: options.map(([label, isOptimal, feedback], order) => ({ dailyLessonId: id, order, label, isOptimal, feedback })),
+    });
+  }
+}
+
 async function main() {
   await seedUsers();
   await seedLessons();
   await seedProgress();
+  await seedDaily();
 
   console.log("Seed finished.\n");
   console.log("Accounts (password for both: " + PASSWORD + "):");
   for (const u of USERS) console.log(`  ${u.role?.padEnd(5)}  ${u.email}  (username: ${u.username})`);
   console.log(`\nLessons: ${LESSONS.length}, completed by test user: ${COMPLETED_BY_USER.length}`);
+  console.log(`Daily tasks: ${DAILY.length}`);
 }
 
 main()

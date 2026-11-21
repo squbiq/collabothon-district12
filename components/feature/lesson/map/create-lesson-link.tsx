@@ -11,7 +11,7 @@ export async function CreateLessonLink() {
 
   return (
     <Link href="/panel/lesson/create"
-      className={cn(chunkyButtonVariants({ tone: "success", size: "lg" }), "fixed right-8 bottom-8")}
+      className={cn(chunkyButtonVariants({ tone: "success", size: "lg" }), "fixed right-8 bottom-8 max-md:right-4 max-md:bottom-20")}
     >
       <LayersPlus /> Create lesson
     </Link>

@@ -16,8 +16,8 @@ export function shuffle<T>(items: T[]): T[] {
   return copy;
 }
 
-/** Losuje `ARENA_ROUNDS` id pytań. `today` to klucz dnia UTC (z lib/clock). */
-export async function pickQuestionIds(today: string): Promise<string[]> {
+/** Wszystkie zadania, które mogą trafić do areny. `today` to klucz dnia UTC (z lib/clock). */
+async function usableQuestionIds(today: string): Promise<string[]> {
   const pool = await prisma.dailyLesson.findMany({
     where: {
       OR: ARENA_INCLUDE_UNSCHEDULED ? [{ dateKey: null }, { dateKey: { lt: today } }] : [{ dateKey: { lt: today } }],
@@ -25,8 +25,17 @@ export async function pickQuestionIds(today: string): Promise<string[]> {
     },
     select: { id: true, _count: { select: { options: true } } },
   });
-  const usable = pool.filter((q) => q._count.options >= 2).map((q) => q.id);
-  return shuffle(usable).slice(0, ARENA_ROUNDS);
+  return pool.filter((q) => q._count.options >= 2).map((q) => q.id);
+}
+
+/** Losuje `ARENA_ROUNDS` id pytań (mniej, gdy pula jest mniejsza). */
+export async function pickQuestionIds(today: string): Promise<string[]> {
+  return shuffle(await usableQuestionIds(today)).slice(0, ARENA_ROUNDS);
+}
+
+/** Ile pytań faktycznie będzie w grze: stała ARENA_ROUNDS, ale nie więcej niż jest w puli. */
+export async function getArenaRounds(today: string): Promise<number> {
+  return Math.min(ARENA_ROUNDS, (await usableQuestionIds(today)).length);
 }
 
 /** Pytania w podanej kolejności, bez informacji o poprawnej odpowiedzi. `null`, gdy któregoś brakuje. */

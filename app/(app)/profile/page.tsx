@@ -14,7 +14,7 @@ import { ChunkyButton } from "@/components/shared/chunky-button";
 import { toast } from "@/components/ui/toast";
 
 const formatDate = (date: Date | string) =>
-  new Date(date).toLocaleString("pl-PL", { dateStyle: "long", timeStyle: "short" });
+  new Date(date).toLocaleString("en-US", { dateStyle: "long", timeStyle: "short" });
 
 function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
   return (

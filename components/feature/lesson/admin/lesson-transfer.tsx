@@ -1,10 +1,9 @@
 // Import / eksport lekcji w formacie JSON (panel admina) – każdy w osobnym dialogu z opcjami.
 "use client";
 
-import { useRef, useState, useTransition, type ReactNode } from "react";
+import { useRef, useState, useTransition } from "react";
 import { Download, FileJson, Upload } from "lucide-react";
 import { ChunkyButton } from "@/components/shared/chunky-button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -13,42 +12,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/toast";
+import { MAX_FILE_BYTES, TransferError, TransferOption, downloadJson } from "@/components/shared/transfer-ui";
 import { exportLessons, importLessons } from "@/lib/lesson/transfer-actions";
 import type { LessonTreeItem } from "@/lib/lesson/admin-queries";
-
-// Musi mieścić się w serverActions.bodySizeLimit z next.config.ts (5 MB).
-const MAX_FILE_BYTES = 4_500_000;
-
-function downloadJson(filename: string, json: string) {
-  const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
-function Option({ checked, onChange, label, hint }: { checked: boolean; onChange: (v: boolean) => void; label: string; hint?: string }) {
-  return (
-    <Label className="flex cursor-pointer items-start gap-2 font-medium">
-      <Checkbox checked={checked} onCheckedChange={(v) => onChange(v === true)} className="mt-0.5" />
-      <span className="flex flex-col">
-        {label}
-        {hint && <span className="text-xs font-normal text-muted-foreground">{hint}</span>}
-      </span>
-    </Label>
-  );
-}
-
-function ErrorText({ children }: { children: ReactNode }) {
-  return children ? (
-    <p role="alert" className="text-sm font-medium text-destructive">
-      {children}
-    </p>
-  ) : null;
-}
 
 // ---------- Eksport ----------
 
@@ -90,19 +57,19 @@ function ExportDialog({ lessons, open, onOpenChange }: { lessons: LessonTreeItem
         </DialogHeader>
 
         <div className="flex flex-col gap-3">
-          <Option checked={all} onChange={setAll} label="All lessons" />
+          <TransferOption checked={all} onChange={setAll} label="All lessons" />
           {!all && (
             <ul className="flex max-h-56 flex-col gap-2 overflow-y-auto rounded-lg border p-3" aria-label="Lessons to export">
               {lessons.map((lesson) => (
                 <li key={lesson.id}>
-                  <Option checked={selected.has(lesson.id)} onChange={(v) => toggle(lesson.id, v)} label={lesson.title} />
+                  <TransferOption checked={selected.has(lesson.id)} onChange={(v) => toggle(lesson.id, v)} label={lesson.title} />
                 </li>
               ))}
               {lessons.length === 0 && <li className="text-sm text-muted-foreground">No lessons yet.</li>}
             </ul>
           )}
-          <Option checked={stripIds} onChange={setStripIds} label="Without IDs (portable)" hint="Lesson, topic and chapter IDs are left out of the file." />
-          <ErrorText>{error}</ErrorText>
+          <TransferOption checked={stripIds} onChange={setStripIds} label="Without IDs (portable)" hint="Lesson, topic and chapter IDs are left out of the file." />
+          <TransferError>{error}</TransferError>
         </div>
 
         <DialogFooter>
@@ -168,13 +135,13 @@ function ImportDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o:
               {file.name} <span className="text-muted-foreground">({Math.max(1, Math.round(file.size / 1024))} KB)</span>
             </p>
           )}
-          <Option
+          <TransferOption
             checked={ignoreIds}
             onChange={setIgnoreIds}
             label="Always create new lessons (ignore IDs)"
             hint="Otherwise lessons with a matching ID are updated."
           />
-          <ErrorText>{error}</ErrorText>
+          <TransferError>{error}</TransferError>
         </div>
 
         <DialogFooter>
@@ -198,12 +165,15 @@ export function LessonTransferPanel({ lessons }: { lessons: LessonTreeItem[] }) 
   return (
     <section className="flex flex-col gap-2 rounded-2xl border p-3" aria-label="Import and export">
       <h2 className="text-sm font-extrabold text-foreground">Import / export</h2>
-      <ChunkyButton tone="outline-primary" size="sm" fullWidth onClick={() => setDialog("export")}>
-        <Download /> Export
-      </ChunkyButton>
-      <ChunkyButton tone="outline-primary" size="sm" fullWidth onClick={() => setDialog("import")}>
-        <Upload /> Import
-      </ChunkyButton>
+      {/* dwa przyciski obok siebie */}
+      <div className="flex gap-2">
+        <ChunkyButton tone="outline-primary" size="sm" className="flex-1" onClick={() => setDialog("export")}>
+          <Download /> Export
+        </ChunkyButton>
+        <ChunkyButton tone="outline-primary" size="sm" className="flex-1" onClick={() => setDialog("import")}>
+          <Upload /> Import
+        </ChunkyButton>
+      </div>
 
       {/* key: dialog startuje z czystym stanem po każdym otwarciu */}
       {dialog === "export" && <ExportDialog lessons={lessons} open onOpenChange={close} />}

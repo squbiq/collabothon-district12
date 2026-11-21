@@ -10,7 +10,6 @@ import { ArrowLeft, Bot, Loader2, Swords, Timer, Trophy, User, Zap } from "lucid
 import { ChunkyButton } from "@/components/shared/chunky-button";
 import { cancelSearch, findMatch, getMatchState, submitMatchAnswer } from "@/lib/arena/online-actions";
 import {
-  ARENA_ROUNDS,
   ONLINE_CORRECT_POINTS,
   ONLINE_POLL_MS,
   ONLINE_QUESTION_SECONDS,
@@ -37,7 +36,7 @@ const OUTCOME_TITLES: Record<DuelOutcome, string> = {
 
 const QUESTION_MS = ONLINE_QUESTION_SECONDS * 1000;
 
-export function ArenaOnline({ onExit, onPlayBot }: { onExit: () => void; onPlayBot: () => void }) {
+export function ArenaOnline({ rounds, onExit, onPlayBot }: { rounds: number; onExit: () => void; onPlayBot: () => void }) {
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -160,7 +159,7 @@ export function ArenaOnline({ onExit, onPlayBot }: { onExit: () => void; onPlayB
         <Swords className="size-12 text-sky-500" />
         <h2 className="text-2xl font-extrabold">Play online</h2>
         <p className="text-muted-foreground">
-          Same {ARENA_ROUNDS} questions for both of you, {ONLINE_QUESTION_SECONDS} seconds each. A correct answer is worth{" "}
+          Same {rounds} {rounds === 1 ? "question" : "questions"} for both of you, {ONLINE_QUESTION_SECONDS} seconds each. A correct answer is worth{" "}
           {ONLINE_CORRECT_POINTS} points, plus up to {ONLINE_SPEED_BONUS_MAX} for speed. Most points wins.
         </p>
         <div className="flex flex-wrap justify-center gap-2 text-sm font-bold">

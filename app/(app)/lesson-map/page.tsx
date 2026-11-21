@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { getTopics, resolveTopic } from "@/lib/lesson/topics";
 import { PathSwitcher } from "@/components/feature/lesson/map/path-switcher";
 import { LessonList } from "@/components/feature/lesson/map/lesson-list";
+import { LockedToast } from "@/components/feature/lesson/map/locked-toast";
 import { CreateLessonLink } from "@/components/feature/lesson/map/create-lesson-link";
 
 type SearchParams = Promise<{ path?: string }>;
@@ -33,6 +34,7 @@ export default function LessonMapPage({ searchParams }: { searchParams: SearchPa
       <div className="flex w-full max-w-xl flex-col gap-6">
         <Suspense fallback={<p className="font-bold text-muted-foreground">Loading lessons…</p>}>
           <PathContent searchParams={searchParams} />
+          <LockedToast />
           <CreateLessonLink />
         </Suspense>
       </div>

@@ -12,6 +12,7 @@ export type DailyTaskInput = {
   title: string;
   scenario: string;
   rewardExp: number;
+  /** Czy zadanie może pojawiać się też w arenie. */
   options: DailyOptionInput[];
 };
 

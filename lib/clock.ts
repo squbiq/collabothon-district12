@@ -4,11 +4,11 @@
 // Przy cacheComponents odczyt czasu w trakcie prerenderu jest błędem. `await connection()` mówi Next.js,
 // że ten fragment dopiero po nadejściu żądania – dzięki temu nie trzeba pamiętać o nim w każdej stronie.
 // Doba jest liczona w UTC, tak samo jak streak (components/streak/streak.tsx).
-import { connection } from "next/server";
+import { io } from "next/cache";
 
 /** Aktualny czas serwera (dynamicznie, po żądaniu). */
 export async function currentTime(): Promise<Date> {
-  await connection();
+  await io();
   return new Date();
 }
 
