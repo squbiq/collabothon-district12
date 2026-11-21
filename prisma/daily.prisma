@@ -1,0 +1,41 @@
+model DailyLesson {
+  id          String              @id @default(cuid())
+  dateKey     String              @unique // Format "YYYY-MM-DD"
+  category    String
+  title       String
+  scenario    String              @db.Text
+  rewardExp   Int                 @default(100) @db.UnsignedInt
+
+  options     DailyOption[]
+  progress    UserDailyProgress[]
+
+  @@map("daily_lesson")
+}
+
+model DailyOption {
+  id            String      @id @default(cuid())
+  dailyLessonId String
+  label         String
+  isOptimal     Boolean     @default(false)
+  feedback      String      @db.Text
+
+  dailyLesson   DailyLesson @relation(fields: [dailyLessonId], references: [id], onDelete: Cascade)
+
+  @@index([dailyLessonId(length: 191)])
+  @@map("daily_option")
+}
+
+model UserDailyProgress {
+  id               String      @id @default(cuid())
+  userId           String
+  dailyLessonId    String
+  selectedOptionId String
+  completedAt      DateTime    @default(now())
+
+  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dailyLesson      DailyLesson @relation(fields: [dailyLessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dailyLessonId])
+  @@index([userId(length: 191)])
+  @@map("user_daily_progress")
+}
