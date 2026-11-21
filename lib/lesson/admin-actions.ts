@@ -9,7 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { PERSONAS, type LessonDataInput, type StepInput } from "@/types/lesson-input";
 import { defaultStage } from "./default-stage";
-import { parseStep, stepColumns } from "./step-parser";
+import { isEditableStepType, parseStep, stepColumns } from "./step-parser";
 
 type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string };
 
@@ -33,11 +33,17 @@ async function parseLessonData(input: LessonDataInput) {
   const description = clean(input.description);
   const estimatedMinutes = Number(input.estimatedMinutes);
   const experience = Number(input.experience);
+  const unlockAssetId = clean(input.unlockAssetId);
 
   if (!chapterId || !title || !description) return fail("Fill in the chapter, title and description.");
   if (!Number.isInteger(estimatedMinutes) || estimatedMinutes < 1) {
     return fail("Estimated time must be a whole number (at least 1 minute).");
   }
+  // kolumna experience jest UNSIGNED INT, a tytuł i zasób to VARCHAR(191)
+  if (!Number.isInteger(experience) || experience < 0 || experience > 1_000_000) {
+    return fail("Experience must be a whole number (0 or more).");
+  }
+  if (title.length > 191 || unlockAssetId.length > 191) return fail("Title is too long (max 191 characters).");
   const chapter = await prisma.chapter.findUnique({ where: { id: chapterId }, select: { id: true } });
   if (!chapter) return fail("Selected chapter does not exist.");
 
@@ -53,7 +59,7 @@ async function parseLessonData(input: LessonDataInput) {
       description,
       estimatedMinutes,
       experience,
-      unlockAssetId: clean(input.unlockAssetId) || null,
+      unlockAssetId: unlockAssetId || null,
       personas: [...new Set((input.targetPersonas ?? []).filter((p) => PERSONAS.includes(p)))],
     },
   };
@@ -139,6 +145,8 @@ export async function createStage(
   type: StepInput["type"]
 ): Promise<Result<{ id: string }>> {
   if (!(await isAdmin())) return fail("Forbidden.");
+  // typ przychodzi z klienta – nieznany nie może dojść do defaultStage()
+  if (!isEditableStepType(type)) return fail("Unknown stage type.");
   const parsed = parseStep(defaultStage(type));
   if (!parsed.ok) return parsed;
 

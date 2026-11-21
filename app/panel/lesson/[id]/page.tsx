@@ -2,7 +2,7 @@
 //
 // Edycja danych lekcji (ten sam formularz co przy tworzeniu, ale wypełniony).
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { getTopics } from "@/lib/lesson/topics";
 import { getChapterOptions, getLessonForEdit } from "@/lib/lesson/admin-queries";
 import { ExportLessonButton } from "@/components/feature/lesson/admin/lesson-transfer";
@@ -13,7 +13,8 @@ async function EditLessonContent({ params }: { params: Promise<{ id: string }> }
   await connection()
   const { id } = await params;
   const [lesson, topics, chapters] = await Promise.all([getLessonForEdit(id), getTopics(), getChapterOptions()]);
-  if (!lesson) notFound();
+  // brak lekcji (np. właśnie usunięta) -> wracamy na listę, zamiast pokazywać 404
+  if (!lesson) redirect("/panel/lesson");
 
   return (
     <div className="flex max-w-2xl flex-col gap-6">

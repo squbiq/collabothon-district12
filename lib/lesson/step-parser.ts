@@ -26,13 +26,27 @@ export const isEditableStepType = (t: string): t is StepInput["type"] =>
 
 export type ParseResult = { ok: true; step: ParsedStep } | { ok: false; error: string };
 
+const MAX_VARCHAR = 191; // tyle mieszczą kolumny String w bazie
 const MIN_PAIRS = 2;
 const MAX_PAIRS = 6;
 
 const clean = (v: unknown) => (typeof v === "string" ? v.trim() : "");
 const fail = (error: string): ParseResult => ({ ok: false, error });
 
+// Dane z klienta są niezaufane – błędny kształt (np. null zamiast obiektu) kończy się błędem walidacji, nie wyjątkiem.
 export function parseStep(raw: StepInput): ParseResult {
+  try {
+    const result = parseStepUnsafe(raw);
+    if (result.ok && (result.step.title.length > MAX_VARCHAR || result.step.options.some((o) => o.label.length > MAX_VARCHAR))) {
+      return fail(`A title or option label is too long (max ${MAX_VARCHAR} characters).`);
+    }
+    return result;
+  } catch {
+    return fail("Invalid stage data.");
+  }
+}
+
+function parseStepUnsafe(raw: StepInput): ParseResult {
   const title = clean(raw.title);
   if (!title) return fail("Enter a stage title.");
 

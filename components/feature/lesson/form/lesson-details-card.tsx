@@ -1,12 +1,9 @@
 // Karta z podstawowymi danymi lekcji (rozdział, tytuł, opis, czas, persony...).
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { PERSONAS, type ChapterOption } from "@/types/lesson-input";
-import type { PersonaType } from "@/types/users";
+import { type ChapterOption } from "@/types/lesson-input";
 import type { TopicOption } from "@/lib/lesson/topics";
 import { ChapterField } from "./chapter-field";
 import { FormField } from "./form-field";
@@ -19,10 +16,9 @@ type Props = {
   /** Zmiana tematu czyści wybrany rozdział (rozdziały należą do tematu). */
   onTopicChange: (topicId: string) => void;
   onChange: <K extends keyof LessonDataFields>(key: K, value: LessonDataFields[K]) => void;
-  onTogglePersona: (p: PersonaType) => void;
 };
 
-export function LessonDetailsCard({ fields, topics, chapters, onTopicChange, onChange, onTogglePersona }: Props) {
+export function LessonDetailsCard({ fields, topics, chapters, onTopicChange, onChange }: Props) {
   return (
     <Card>
       <CardHeader>

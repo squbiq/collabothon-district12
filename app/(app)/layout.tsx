@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import logo from "@/public/logo-all.svg"
 import { cn } from "cn";
-import { BookOpen, CalendarDays, LogIn, LogOut, LucideIcon, Menu, Swords, Trophy, User as UserIcon } from "lucide-react";
+import { BookOpen, CalendarDays, LogIn, LogOut, LucideIcon, Menu, Trophy, User as UserIcon } from "lucide-react";
 import { ChunkyButton, chunkyButtonVariants } from "@/components/shared/chunky-button";
 import { Suspense, useState } from "react";
 import { type User, useUser } from "@/components/context/user-context";

@@ -9,7 +9,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "@/components/ui/toast";
 import { createLessonWithStage, saveLessonData } from "@/lib/lesson/admin-actions";
 import type { ChapterOption, LessonDataInput } from "@/types/lesson-input";
-import type { PersonaType } from "@/types/users";
 import type { TopicOption } from "@/lib/lesson/topics";
 import { LessonDetailsCard } from "@/components/feature/lesson/form/lesson-details-card";
 import {
@@ -43,9 +42,6 @@ export function LessonDataForm({ topics, chapters, lesson }: Props) {
   // zmiana tematu czyści rozdział, bo rozdziały należą do konkretnego tematu
   const changeTopic = (topicId: string) => setFields((prev) => ({ ...prev, topicId, chapterId: "" }));
 
-  const togglePersona = (p: PersonaType) =>
-    setField("personas", fields.personas.includes(p) ? fields.personas.filter((x) => x !== p) : [...fields.personas, p]);
-
   function submit(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -74,7 +70,6 @@ export function LessonDataForm({ topics, chapters, lesson }: Props) {
         chapters={chapters}
         onTopicChange={changeTopic}
         onChange={setField}
-        onTogglePersona={togglePersona}
       />
 
       {error && (

@@ -2,7 +2,7 @@
 //
 // Edycja wybranego etapu (stage'a) lekcji.
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { getStageForEdit } from "@/lib/lesson/admin-queries";
 import { StageForm } from "@/components/feature/lesson/admin/stage-form";
 
@@ -11,7 +11,8 @@ type Params = Promise<{ id: string; stageId: string }>;
 async function EditStageContent({ params }: { params: Params }) {
   const { id, stageId } = await params;
   const data = await getStageForEdit(id, stageId);
-  if (!data) notFound();
+  // brak etapu (np. właśnie usunięty) -> wracamy do lekcji, zamiast pokazywać 404
+  if (!data) redirect(`/panel/lesson/${id}`);
 
   return (
     <div className="flex max-w-2xl flex-col gap-6">

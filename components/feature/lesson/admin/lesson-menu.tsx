@@ -70,7 +70,7 @@ export function LessonMenu({ lessons }: { lessons: LessonTreeItem[] }) {
     startTransition(async () => {
       const result = await deleteLesson(deleting.id);
       if (!result.ok) return setDeleteError(result.error);
-      // jeśli usunięta lekcja była właśnie otwarta, wracamy na listę
+      // otwarta lekcja po usunięciu przekierowuje się sama (strona edycji), ale push jest pewniejszy
       if (deleting.id === lessonId) router.push(ROUTE_PREFIX);
       setDeleting(null);
     });
