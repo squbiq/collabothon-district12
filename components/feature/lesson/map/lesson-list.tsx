@@ -1,5 +1,4 @@
 // Lista lekcji wybranego tematu, pogrupowana po rozdziałach (komponent serwerowy – sam pobiera dane).
-import { connection } from "next/server";
 import { getLessons } from "@/lib/lesson/lessons";
 import { getSession } from "@/lib/session";
 import type { LessonMapItem } from "@/types/lesson";
@@ -22,8 +21,7 @@ function groupByChapter(lessons: LessonMapItem[]) {
 }
 
 export async function LessonList({ topicId }: { topicId: string }) {
-  // Dane zależne od żądania (sesja, baza) pobieramy dopiero w request-time (cacheComponents).
-  await connection();
+  // getSession() czyta nagłówki żądania – dalsze dane są pobierane w trybie dynamicznym (cacheComponents).
   const session = await getSession();
   const isLoggedIn = Boolean(session);
 

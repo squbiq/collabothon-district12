@@ -2,13 +2,13 @@
 //
 // Edycja tematu: nazwa oraz rozdziały (dodawanie, zmiana nazwy, kolejność, usuwanie).
 import { Suspense } from "react";
-import { connection } from "next/server";
+import { requireAdmin } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { getTopicForEdit } from "@/lib/lesson/admin-queries";
 import { TopicEditor } from "@/components/feature/lesson/admin/topic-editor";
 
 async function TopicContent({ params }: { params: Promise<{ id: string }> }) {
-  await connection();
+  await requireAdmin(); // odczyt sesji = dane żądania (tryb dynamiczny) + kontrola roli
   const { id } = await params;
   const topic = await getTopicForEdit(id);
   // brak tematu (np. właśnie usunięty) -> wracamy na listę

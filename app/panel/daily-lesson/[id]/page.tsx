@@ -1,13 +1,13 @@
 // app/panel/daily-lesson/[id]/page.tsx
 import { Suspense } from "react";
-import { connection } from "next/server";
+import { requireAdmin } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { DailyTaskForm } from "@/components/feature/daily/admin/daily-task-form";
 import { BackToList } from "@/components/feature/daily/admin/back-to-list";
 import { getDailyTaskForEdit } from "@/lib/daily/admin-queries";
 
 async function EditContent({ params }: { params: Promise<{ id: string }> }) {
-  await connection();
+  await requireAdmin(); // odczyt sesji = dane żądania (tryb dynamiczny) + kontrola roli
   const { id } = await params;
   const task = await getDailyTaskForEdit(id);
   if (!task) redirect("/panel/daily-lesson");

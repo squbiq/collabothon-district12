@@ -1,10 +1,10 @@
 // Komponent serwerowy: pobiera lekcje i przekazuje je do menu (klienckiego).
-import { connection } from "next/server";
+import { requireAdmin } from "@/lib/session";
 import { getLessonTree } from "@/lib/lesson/admin-queries";
 import { LessonMenu } from "./lesson-menu";
 
 export async function LessonMenuLoader() {
-  await connection(); // dane zależne od żądania – nie pobieramy ich podczas prerenderu
+  await requireAdmin(); // odczyt sesji = dane żądania (tryb dynamiczny) + kontrola roli
   const lessons = await getLessonTree();
   return <LessonMenu lessons={lessons} />;
 }

@@ -2,7 +2,6 @@
 //
 // Mapa lekcji: wybór tematu na górze + lekcje pogrupowane po rozdziałach.
 import { Suspense } from "react";
-import { connection } from "next/server";
 import { getTopics, resolveTopic } from "@/lib/lesson/topics";
 import { PathSwitcher } from "@/components/feature/lesson/map/path-switcher";
 import { LessonList } from "@/components/feature/lesson/map/lesson-list";
@@ -11,7 +10,7 @@ import { CreateLessonLink } from "@/components/feature/lesson/map/create-lesson-
 type SearchParams = Promise<{ path?: string }>;
 
 async function PathContent({ searchParams }: { searchParams: SearchParams }) {
-  await connection();
+  // await searchParams = dane żądania, więc zapytania poniżej działają w trybie dynamicznym
   const { path } = await searchParams;
   const topics = await getTopics();
   const current = resolveTopic(topics, path);

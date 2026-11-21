@@ -6,10 +6,10 @@ import { getTopics } from "@/lib/lesson/topics";
 import { getChapterOptions } from "@/lib/lesson/admin-queries";
 import { ChapterCreateForm } from "@/components/feature/lesson/admin/chapter-create-form";
 import { LessonDataForm } from "@/components/feature/lesson/admin/lesson-data-form";
-import { connection } from "next/server";
+import { requireAdmin } from "@/lib/session";
 
 async function CreateLessonContent() {
-  await connection();
+  await requireAdmin(); // odczyt sesji = dane żądania (tryb dynamiczny) + kontrola roli
   const [topics, chapters] = await Promise.all([getTopics(), getChapterOptions()]);
   return (
     // Formularz lekcji po lewej, nowy rozdział obok (na wąskim ekranie pod spodem)

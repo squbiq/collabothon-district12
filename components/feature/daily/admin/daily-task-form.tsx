@@ -4,9 +4,8 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition, type FormEvent } from "react";
 import { AlertCircle, Plus } from "lucide-react";
-import { ChunkyButton } from "@/components/shared/chunky-button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { ChunkyButton } from "@/components/shared/chunky-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -134,28 +133,23 @@ export function DailyTaskForm({ task }: { task?: DailyTaskForEdit }) {
                 />
                 Correct answer
               </Label>
-              <Button
+              <ChunkyButton tone="outline-primary" size="sm"
                 type="button"
-                variant="outline"
-                size="sm"
                 disabled={options.length <= 2}
                 onClick={() => removeOption(option.key)}
               >
                 Remove option
-              </Button>
+              </ChunkyButton>
             </div>
           </div>
         ))}
 
-        <Button
+        <ChunkyButton tone="outline-primary" size="sm" className="self-start"
           type="button"
-          variant="outline"
-          size="sm"
-          className="self-start"
           onClick={() => setOptions((prev) => [...prev, { key: newKey(), label: "", feedback: "" }])}
         >
           <Plus /> Add option
-        </Button>
+        </ChunkyButton>
       </fieldset>
 
       {error && (

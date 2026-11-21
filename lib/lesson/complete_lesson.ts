@@ -2,6 +2,7 @@
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { currentTime } from "@/lib/clock";
 import { registerStreakActivity } from "@/components/streak/streak";
 
 export type CompleteLessonResult = {
@@ -18,7 +19,7 @@ export async function completeLesson(
   const userId = session.user.id;
 
   return prisma.$transaction(async (tx) => {
-    const now = new Date();
+    const now = currentTime();
 
     const lesson = await tx.lesson.findUnique({
       where: { id: lessonId },

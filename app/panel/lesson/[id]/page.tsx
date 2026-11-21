@@ -6,10 +6,10 @@ import { redirect } from "next/navigation";
 import { getTopics } from "@/lib/lesson/topics";
 import { getChapterOptions, getLessonForEdit } from "@/lib/lesson/admin-queries";
 import { LessonDataForm } from "@/components/feature/lesson/admin/lesson-data-form";
-import { connection } from "next/server";
+import { requireAdmin } from "@/lib/session";
 
 async function EditLessonContent({ params }: { params: Promise<{ id: string }> }) {
-  await connection()
+  await requireAdmin(); // odczyt sesji = dane żądania (tryb dynamiczny) + kontrola roli
   const { id } = await params;
   const [lesson, topics, chapters] = await Promise.all([getLessonForEdit(id), getTopics(), getChapterOptions()]);
   // brak lekcji (np. właśnie usunięta) -> wracamy na listę, zamiast pokazywać 404

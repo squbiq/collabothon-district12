@@ -1,5 +1,5 @@
 import { Plus, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ChunkyButton } from "@/components/shared/chunky-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,28 +27,23 @@ export function SummaryFields({ step, onChange }: StepFieldsProps) {
         {step.takeaways.map((t, i) => (
           <div key={i} className="flex gap-2">
             <Input value={t} onChange={(e) => setTakeaway(i, e.target.value)} aria-label={`Takeaway ${i + 1}`} />
-            <Button
+            <ChunkyButton tone="outline-primary" size="sm" className="aspect-square px-0"
               type="button"
-              variant="outline"
-              size="icon"
               disabled={step.takeaways.length <= 1}
               onClick={() => onChange({ takeaways: step.takeaways.filter((_, j) => j !== i) })}
               aria-label={`Remove takeaway ${i + 1}`}
             >
               <X className="h-4 w-4" />
-            </Button>
+            </ChunkyButton>
           </div>
         ))}
-        <Button
+        <ChunkyButton tone="outline-primary" size="sm" className="self-start"
           type="button"
-          variant="outline"
-          size="sm"
           onClick={() => onChange({ takeaways: [...step.takeaways, ""] })}
-          className="self-start"
         >
           <Plus className="mr-1.5 h-4 w-4" />
           Add takeaway
-        </Button>
+        </ChunkyButton>
       </div>
     </>
   );

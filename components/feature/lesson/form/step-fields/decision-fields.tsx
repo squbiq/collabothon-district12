@@ -1,5 +1,5 @@
 import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ChunkyButton } from "@/components/shared/chunky-button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -58,30 +58,25 @@ export function DecisionFields({ step, onChange }: StepFieldsProps) {
                   Best option
                 </Label>
 
-                <Button
+                <ChunkyButton tone="outline-primary" size="sm"
                   type="button"
-                  variant="outline"
-                  size="sm"
                   disabled={step.options.length <= 2}
                   onClick={() => onChange({ options: step.options.filter((o) => o.key !== option.key) })}
                 >
                   Remove option
-                </Button>
+                </ChunkyButton>
               </div>
             </div>
           );
         })}
 
-        <Button
+        <ChunkyButton tone="outline-primary" size="sm" className="self-start"
           type="button"
-          variant="outline"
-          size="sm"
           onClick={() => onChange({ options: [...step.options, emptyOption()] })}
-          className="self-start"
         >
           <Plus className="mr-1.5 h-4 w-4" />
           Add option
-        </Button>
+        </ChunkyButton>
       </div>
     </>
   );

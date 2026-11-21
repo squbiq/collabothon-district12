@@ -1,20 +1,17 @@
 import { Suspense } from 'react';
-import { headers } from 'next/headers';
-import { auth } from '@/lib/auth';
-import { getDailyLessonsData } from '@/lib/daily/actions';
+import { getSession } from '@/lib/session';
+import { getDailyLessonsData } from '@/lib/daily/queries';
 import { DailyLessonView } from '@/components/daily-lesson-view';
 
 async function DailyLessonContent() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  const userId = session?.user?.id;
-  const data = await getDailyLessonsData(userId);
+  // sesja czyta nagłówki żądania, więc dalszy kod (w tym zegar) działa już w trybie dynamicznym
+  const session = await getSession();
+  const data = await getDailyLessonsData(session?.user.id);
 
   return (
     <DailyLessonView
-      userId={userId}
+      isLoggedIn={Boolean(session)}
+      todayKey={data.today}
       initialLessons={data.lessonsByDate}
       initialCompletedDates={data.completedDates}
       initialAnswers={data.answersByDate}

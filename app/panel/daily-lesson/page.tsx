@@ -4,14 +4,14 @@
 // najstarsze z puli dostaje dzisiejszą datę.
 import Link from "next/link";
 import { Suspense } from "react";
-import { connection } from "next/server";
+import { requireAdmin } from "@/lib/session";
 import { Plus } from "lucide-react";
 import { chunkyButtonVariants } from "@/components/shared/chunky-button";
 import { DailyPoolList } from "@/components/feature/daily/admin/daily-pool-list";
 import { getDailyPool } from "@/lib/daily/admin-queries";
 
 async function PoolContent() {
-  await connection();
+  await requireAdmin(); // odczyt sesji = dane żądania (tryb dynamiczny) + kontrola roli
   const tasks = await getDailyPool();
   const waiting = tasks.filter((t) => !t.dateKey).length;
 

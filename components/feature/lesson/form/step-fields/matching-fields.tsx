@@ -1,5 +1,5 @@
 import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ChunkyButton } from "@/components/shared/chunky-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -45,30 +45,25 @@ export function MatchingFields({ step, onChange }: StepFieldsProps) {
           </FormField>
 
           <div className="flex justify-end">
-            <Button
+            <ChunkyButton tone="outline-primary" size="sm"
               type="button"
-              variant="outline"
-              size="sm"
               disabled={step.pairs.length <= MIN_PAIRS}
               onClick={() => onChange({ pairs: step.pairs.filter((p) => p.key !== pair.key) })}
             >
               Remove pair
-            </Button>
+            </ChunkyButton>
           </div>
         </div>
       ))}
 
-      <Button
+      <ChunkyButton tone="outline-primary" size="sm" className="self-start"
         type="button"
-        variant="outline"
-        size="sm"
         disabled={step.pairs.length >= MAX_PAIRS}
         onClick={() => onChange({ pairs: [...step.pairs, emptyPair()] })}
-        className="self-start"
       >
         <Plus className="mr-1.5 h-4 w-4" />
         Add pair
-      </Button>
+      </ChunkyButton>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
+import { ChunkyButton } from "@/components/shared/chunky-button";
 import {
   Card,
   CardContent,
@@ -46,11 +46,11 @@ export function QuestABBlock({ questData }:{ questData: QuastAB }) {
       <CardContent className="w-full flex flex-col gap-4">
         <section className="w-full h-12 flex flex-row gap-4">
           {Object.entries(questData.options).map(([k, v]) => (
-            <Button key={k} variant={"outline"} onClick={() => selectOption(k)} className={
+            <ChunkyButton tone="outline-primary" key={k} onClick={() => selectOption(k)} className={
                 cn("w-full h-full shrink cursor-pointer border", 
                   selected == k ? v.correct == true ? "border-green-500!" : "border-red-500!" : "")
               } 
-              >{k}</Button>
+              >{k}</ChunkyButton>
           ))}
         </section>
         { selected != "" ? <section className="flex items-center justify-center">

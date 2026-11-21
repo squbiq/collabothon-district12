@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 import Link from 'next/link';
 import {
   AlertTriangle,
@@ -21,20 +21,19 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Calendar } from '@/components/ui/calendar';
-import {
-  addDays,
-  formatDisplayDate,
-  fromDateKey,
-  toDateKey,
-} from '@/lib/daily/mock-data';
-import { type DailyLessonDTO, submitDailyAnswer } from '@/lib/daily/actions';
+import { addDays, formatDisplayDate, fromDateKey, toDateKey } from '@/lib/daily/date';
+import { completeDaily } from '@/lib/daily/actions';
+import type { DailyLessonDTO } from '@/lib/daily/queries';
+import { ChunkyButton, chunkyButtonVariants } from '@/components/shared/chunky-button';
+import { toast } from '@/components/ui/toast';
 
 interface DailyLessonViewProps {
-  userId?: string;
+  isLoggedIn: boolean;
+  /** Dzisiejszy klucz dnia z serwera – widok sam nie czyta zegara. */
+  todayKey: string;
   initialLessons: Record<string, DailyLessonDTO>;
   initialCompletedDates: string[];
   initialAnswers: Record<string, string>;
@@ -42,32 +41,30 @@ interface DailyLessonViewProps {
 }
 
 export function DailyLessonView({
-  userId,
+  isLoggedIn,
+  todayKey,
   initialLessons,
   initialCompletedDates,
   initialAnswers,
   initialStreak,
 }: DailyLessonViewProps) {
-  const today = useMemo(() => {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    return now;
-  }, []);
-
-  const todayKey = useMemo(() => toDateKey(today), [today]);
+  const today = useMemo(() => fromDateKey(todayKey), [todayKey]);
   const lessonsByDate = initialLessons;
 
   const [selectedDate, setSelectedDate] = useState<Date>(today);
   const [streak, setStreak] = useState<number>(initialStreak);
   const [completedDates, setCompletedDates] = useState<string[]>(initialCompletedDates);
   const [answersByDate, setAnswersByDate] = useState<Record<string, string>>(initialAnswers);
+  // Po ukończeniu można oglądać feedback innych opcji – to tylko podgląd, nic się nie zapisuje.
+  const [preview, setPreview] = useState<Record<string, string>>({});
+  const [pending, startTransition] = useTransition();
 
   const selectedKey = toDateKey(selectedDate);
   const isToday = selectedKey === todayKey;
   const currentLesson = lessonsByDate[selectedKey];
-  const selectedOptionId = answersByDate[selectedKey];
-  const selectedOption = currentLesson?.options.find((opt) => opt.id === selectedOptionId);
   const isAlreadyCompleted = completedDates.includes(selectedKey);
+  const selectedOptionId = preview[selectedKey] ?? answersByDate[selectedKey];
+  const selectedOption = currentLesson?.options.find((opt) => opt.id === selectedOptionId);
 
   const completedDateObjects = useMemo(
     () => completedDates.map(fromDateKey),
@@ -82,26 +79,37 @@ export function DailyLessonView({
     [lessonsByDate, completedDates]
   );
 
-  const handleSelectOption = async (optionId: string) => {
-    if (!currentLesson) return;
+  const handleSelectOption = (optionId: string) => {
+    if (!currentLesson || pending) return;
 
-    // Optimistic UI update
-    setAnswersByDate((prev) => ({ ...prev, [selectedKey]: optionId }));
-
-    if (!completedDates.includes(selectedKey)) {
-      setCompletedDates((prev) => [...prev, selectedKey]);
-      if (isToday) {
-        setStreak((prev) => prev + 1);
-      }
+    // Już ukończone (lub brak konta): tylko podgląd feedbacku.
+    if (isAlreadyCompleted || !isLoggedIn) {
+      setPreview((prev) => ({ ...prev, [selectedKey]: optionId }));
+      if (!isLoggedIn) toast.add({ title: 'Sign in to save your progress and earn XP', type: 'info' });
+      return;
     }
 
-    if (userId) {
-      try {
-        await submitDailyAnswer(userId, currentLesson.id, selectedKey, optionId);
-      } catch (error) {
-        console.error('Failed to save daily answer:', error);
+    const lessonKey = selectedKey;
+    startTransition(async () => {
+      const result = await completeDaily(currentLesson.id, optionId);
+      if (!result.ok) {
+        toast.add({ title: result.error, type: 'error' });
+        return;
       }
-    }
+
+      // Zadanie oznaczone jako ukończone dopiero po potwierdzeniu przez serwer
+      setCompletedDates((prev) => (prev.includes(lessonKey) ? prev : [...prev, lessonKey]));
+      setAnswersByDate((prev) => ({ ...prev, [lessonKey]: optionId }));
+      setPreview((prev) => ({ ...prev, [lessonKey]: optionId }));
+      setStreak(result.streak);
+      if (result.firstCompletion) {
+        toast.add({
+          title: `Completed! +${result.xpGained} XP`,
+          description: lessonKey === todayKey ? `Streak: ${result.streak} day${result.streak === 1 ? '' : 's'}` : 'Archive task – streak unchanged',
+          type: 'success',
+        });
+      }
+    });
   };
 
   const handleShiftDay = (offset: number) => {
@@ -128,30 +136,24 @@ export function DailyLessonView({
           </Badge>
 
           <div className="flex items-center gap-1 rounded-lg border bg-card p-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
+            <ChunkyButton tone="outline-none" size="sm" className="aspect-square px-0"
               onClick={() => handleShiftDay(-1)}
               aria-label="Previous day"
             >
               <ChevronLeft className="h-4 w-4" />
-            </Button>
+            </ChunkyButton>
 
             <span className="px-2 text-sm font-medium min-w-32.5 text-center">
               {isToday ? 'Today' : formatDisplayDate(selectedDate)}
             </span>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
+            <ChunkyButton tone="outline-none" size="sm" className="aspect-square px-0"
               onClick={() => handleShiftDay(1)}
               disabled={isToday}
               aria-label="Next day"
             >
               <ChevronRight className="h-4 w-4" />
-            </Button>
+            </ChunkyButton>
           </div>
         </div>
       </div>
@@ -261,9 +263,9 @@ export function DailyLessonView({
 
               <CardFooter className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
                 {!isToday ? (
-                  <Button variant="outline" onClick={() => setSelectedDate(today)}>
+                  <ChunkyButton tone="outline-primary" size="sm" onClick={() => setSelectedDate(today)}>
                     Back to Today&apos;s Lesson
-                  </Button>
+                  </ChunkyButton>
                 ) : (
                   <span className="text-xs text-muted-foreground">
                     Feel free to explore different answers — learn with zero penalties.
@@ -271,11 +273,9 @@ export function DailyLessonView({
                 )}
 
                 {selectedOption && (
-                  <Link href="/arena">
-                    <Button>
-                      Apply This in the Arena
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
+                  <Link href="/lesson-map" className={chunkyButtonVariants({ tone: 'primary', size: 'sm' })}>
+                    Keep learning
+                    <ArrowRight />
                   </Link>
                 )}
               </CardFooter>
@@ -293,9 +293,9 @@ export function DailyLessonView({
                     Pick one of the highlighted past dates in the calendar or jump back to today&apos;s challenge.
                   </p>
                 </div>
-                <Button onClick={() => setSelectedDate(today)}>
+                <ChunkyButton tone="primary" onClick={() => setSelectedDate(today)}>
                   Back to Today&apos;s Lesson
-                </Button>
+                </ChunkyButton>
               </CardContent>
             </Card>
           )}

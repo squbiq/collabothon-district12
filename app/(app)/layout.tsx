@@ -4,54 +4,82 @@ import Image from "next/image";
 import Link from "next/link";
 import logo from "@/public/logo-all.svg"
 import { cn } from "cn";
-import { BookOpen, CalendarDays, LogIn, LogOut, LucideIcon, Menu, Trophy, User as UserIcon } from "lucide-react";
+import {
+  BookOpen,
+  CalendarDays,
+  Home,
+  LogIn,
+  LogOut,
+  LucideIcon,
+  PanelLeftClose,
+  PanelLeftOpen,
+  ShieldCheck,
+  Trophy,
+  User as UserIcon,
+} from "lucide-react";
 import { ChunkyButton, chunkyButtonVariants } from "@/components/shared/chunky-button";
+import { ChubbyTooltip } from "@/components/shared/chubby-tooltip";
 import { Suspense, useState } from "react";
 import { type User, useUser } from "@/components/context/user-context";
 import { VariantProps } from "class-variance-authority";
 import { authClient } from "@/lib/auth-client";
 import { usePathname } from "next/navigation";
 
-const buttonStyle = (tone: VariantProps<typeof chunkyButtonVariants>["tone"] = "primary") => {
-  return cn(chunkyButtonVariants({ size: "lg", tone }), "justify-start h-14 gap-4 p-4.5!");
-};
+type Tone = VariantProps<typeof chunkyButtonVariants>["tone"];
 
- 
-const navLinks: Record<string, { title: string, icon: LucideIcon }> = {
-  "/daily-lesson": { title: "Daily lesson", icon: CalendarDays },
-  "/lesson-map":   { title: "Lessons",      icon: BookOpen },
-  //"/arena":        { title: "Arena",        icon: Swords },
-   "/rankings":      { title: "Rankings",      icon: Trophy },
-};
+// Wszystkie pozycje menu mają ten sam układ: ikona + etykieta. Po zwinięciu zostaje sama ikona (przycisk ma 56 px).
+const itemStyle = (tone: Tone = "primary") =>
+  cn(chunkyButtonVariants({ size: "lg", tone }), "h-14 justify-start gap-4 p-4.5!");
 
+const navLinks: { href: string; title: string; icon: LucideIcon }[] = [
+  { href: "/", title: "Home", icon: Home },
+  { href: "/daily-lesson", title: "Daily lesson", icon: CalendarDays },
+  { href: "/lesson-map", title: "Lessons", icon: BookOpen },
+  //{ href: "/arena", title: "Arena", icon: Swords },
+  { href: "/rankings", title: "Rankings", icon: Trophy },
+];
+
+const isActive = (pathname: string, href: string) =>
+  href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
-
-  const [ open, setOpen ] = useState<boolean>(true);
+  const [open, setOpen] = useState<boolean>(true);
   const { user } = useUser();
+  const collapsed = !open;
 
   return (
     <section className="w-dvw h-dvh flex flex-row">
-
-      <nav className={cn("relative *:overflow-hidden! h-full flex flex-col justify-start items-stretch",
-        "py-4 px-3.5 box-border overflow-hidden! border-r", open ? "w-90" : "w-22", "transition-[width]"
-      )}>
-        <section className="self-start h-20 flex flex-row gap-2 items-center shrink-0!">
-          <Image src={logo} alt="page-logo" className="w-8/12!" />
-          <ChunkyButton tone={"outline-primary"} className={"size-14 absolute right-3.5 z-1"} onClick={() => setOpen(!open)}>
-            <Menu size={4} />
-          </ChunkyButton>
+      <nav
+        aria-label="Main"
+        className={cn(
+          "h-full shrink-0 flex flex-col justify-start items-stretch gap-4 overflow-x-hidden overflow-y-auto border-r box-border px-3.5 py-4",
+          "transition-[width] duration-200 ease-out motion-reduce:transition-none",
+          open ? "w-72" : "w-22"
+        )}
+      >
+        <section className={cn("h-14 shrink-0 flex flex-row items-center gap-2", open ? "justify-between pl-1" : "justify-center")}>
+          {open && <Image src={logo} alt="Finanz.io" priority className="h-auto w-36 min-w-0" />}
+          <ChubbyTooltip label={open ? "Collapse menu" : "Expand menu"} side="right" disabled={open}>
+            <ChunkyButton
+              tone="outline-primary"
+              className="size-14 shrink-0"
+              aria-label={open ? "Collapse menu" : "Expand menu"}
+              aria-expanded={open}
+              onClick={() => setOpen(!open)}
+            >
+              {open ? <PanelLeftClose /> : <PanelLeftOpen />}
+            </ChunkyButton>
+          </ChubbyTooltip>
         </section>
-        <section className="h-full flex flex-col pt-4 justify-between items-stretch">
-          <section className="w-full flex flex-col justify-center box-border gap-4">
+
+        <section className="flex min-h-0 flex-1 flex-col items-stretch justify-between gap-4">
+          <section className="w-full flex flex-col box-border gap-4">
             {/* usePathname() jest danymi z requestu, więc musi być w Suspense (cacheComponents). */}
-            <Suspense fallback={<NavLinks selected="" />}>
-              <ActiveNavLinks />
+            <Suspense fallback={<NavLinks selected="" collapsed={collapsed} />}>
+              <ActiveNavLinks collapsed={collapsed} />
             </Suspense>
           </section>
-          <section className="w-full">
-            <AppNavFooter user={user} />
-          </section>
+          <AppNavFooter user={user} collapsed={collapsed} />
         </section>
       </nav>
 
@@ -63,38 +91,60 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
 }
 
 // Linki nawigacji z podświetleniem aktywnej trasy (wyliczanym z adresu, bez stanu i efektu).
-function ActiveNavLinks() {
+function ActiveNavLinks({ collapsed }: { collapsed: boolean }) {
   const pathName = usePathname();
-  return <NavLinks selected={navLinks[pathName] ? pathName : ""} />;
+  return <NavLinks selected={navLinks.find((l) => isActive(pathName, l.href))?.href ?? ""} collapsed={collapsed} />;
 }
 
-function NavLinks({ selected }: { selected: string }) {
-  return Object.entries(navLinks).map(([k, { title, icon: Icon }]) => (
-    <Link key={k} href={k} className={buttonStyle(selected === k ? "primary" : "outline-none")}>
-      <Icon className="size-5" /> {title}
-    </Link>
+function NavLinks({ selected, collapsed }: { selected: string; collapsed: boolean }) {
+  return navLinks.map(({ href, title, icon }) => (
+    <NavItem key={href} href={href} label={title} icon={icon} collapsed={collapsed} tone={selected === href ? "primary" : "outline-none"} />
   ));
 }
 
-function AppNavFooter({ user } : { user: User | null }) {
+// Jedna pozycja menu; po zwinięciu etykieta znika, a chubby-tooltip mówi, dokąd prowadzi przycisk.
+function NavItem({ href, label, icon: Icon, collapsed, tone }: { href: string; label: string; icon: LucideIcon; collapsed: boolean; tone: Tone }) {
+  return (
+    <ChubbyTooltip label={label} disabled={!collapsed}>
+      <Link href={href} aria-label={collapsed ? label : undefined} className={itemStyle(tone)}>
+        <ItemContent icon={Icon} label={label} collapsed={collapsed} />
+      </Link>
+    </ChubbyTooltip>
+  );
+}
 
+function ItemContent({ icon: Icon, label, collapsed }: { icon: LucideIcon; label: string; collapsed: boolean }) {
+  return (
+    <>
+      <Icon className="size-5" />
+      <span className={cn("overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-200 ease-out", collapsed ? "max-w-0 opacity-0" : "max-w-48 opacity-100")}>
+        {label}
+      </span>
+    </>
+  );
+}
+
+function AppNavFooter({ user, collapsed }: { user: User | null; collapsed: boolean }) {
   const onSignOff = async () => {
     await authClient.signOut();
-  }
+  };
+  const isAdmin = (user as { role?: string | null } | null)?.role === "admin";
 
-  return (<section className="w-full flex flex-col justify-center gap-4">
-    {user != null ? <>
-      <Link href={"/profile"} className={buttonStyle("outline-primary")} >
-        <UserIcon className="size-5" /> Profile
-      </Link>
-      <ChunkyButton onClick={onSignOff} tone={"outline-danger"} size="lg" 
-        className={"justify-start h-14 gap-4 p-4.5!"} >
-        <LogOut className="size-5" /> Sign Off
-      </ChunkyButton>
-    </>
-    :
-    <Link href={"/login"} className={buttonStyle("outline-primary")} >
-      <LogIn className="size-5" /> Sign In
-    </Link>}
-  </section>);
+  return (
+    <section className="w-full flex flex-col justify-center gap-4">
+      {user != null ? (
+        <>
+          {isAdmin && <NavItem href="/panel" label="Admin panel" icon={ShieldCheck} collapsed={collapsed} tone="outline-primary" />}
+          <NavItem href="/profile" label="Profile" icon={UserIcon} collapsed={collapsed} tone="outline-primary" />
+          <ChubbyTooltip label="Sign off" disabled={!collapsed}>
+            <ChunkyButton onClick={onSignOff} tone="outline-danger" size="lg" aria-label={collapsed ? "Sign off" : undefined} className="h-14 justify-start gap-4 p-4.5!">
+              <ItemContent icon={LogOut} label="Sign Off" collapsed={collapsed} />
+            </ChunkyButton>
+          </ChubbyTooltip>
+        </>
+      ) : (
+        <NavItem href="/login" label="Sign In" icon={LogIn} collapsed={collapsed} tone="outline-primary" />
+      )}
+    </section>
+  );
 }

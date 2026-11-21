@@ -1,155 +1,70 @@
+// lib/daily/actions.ts
+//
+// Akcja serwerowa zadania dziennego: pierwsze kliknięcie odpowiedzi oznacza zadanie jako ukończone,
+// daje XP zdefiniowane w zadaniu oraz (dla zadania z dzisiaj) +1 do streaka.
 'use server';
 
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
-import { toDateKey } from '@/lib/daily/mock-data';
+import { getSession } from '@/lib/session';
+import { currentTime, todayKey } from '@/lib/clock';
+import { getEffectiveStreak, registerStreakActivity } from '@/components/streak/streak';
 
-export interface DailyLessonDTO {
-  id: string;
-  dateKey: string;
-  category: string;
-  title: string;
-  scenario: string;
-  rewardExp: number;
-  options: {
-    id: string;
-    label: string;
-    isOptimal: boolean;
-    feedback: string;
-  }[];
-}
+export type CompleteDailyResult =
+  | { ok: true; firstCompletion: boolean; xpGained: number; streak: number; isCorrect: boolean }
+  | { ok: false; error: string };
 
-// Zadanie dnia jest wspólne dla wszystkich: gdy na dziś nic nie przypisano, bierzemy
-// najstarsze zadanie z puli (dateKey = null) i przypisujemy mu dzisiejszą datę.
-async function ensureTodaysLesson(todayKey: string) {
-  const existing = await prisma.dailyLesson.findUnique({ where: { dateKey: todayKey }, select: { id: true } });
-  if (existing) return;
-
-  const candidate = await prisma.dailyLesson.findFirst({
-    where: { dateKey: null },
-    orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
-    select: { id: true },
-  });
-  if (!candidate) return;
+export async function completeDaily(dailyLessonId: string, selectedOptionId: string): Promise<CompleteDailyResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'Sign in to save your progress.' };
+  const userId = session.user.id;
 
   try {
-    await prisma.dailyLesson.updateMany({
-      where: { id: candidate.id, dateKey: null },
-      data: { dateKey: todayKey },
+    const result = await prisma.$transaction(async (tx) => {
+      const now = currentTime();
+      const lesson = await tx.dailyLesson.findUnique({
+        where: { id: dailyLessonId },
+        select: { dateKey: true, rewardExp: true, options: { select: { id: true, isOptimal: true } } },
+      });
+      if (!lesson) throw new Error('Task not found.');
+      // zadania z puli (bez daty) i z przyszłości nie są jeszcze dostępne
+      if (!lesson.dateKey || lesson.dateKey > todayKey()) throw new Error('This task is not available yet.');
+      const option = lesson.options.find((o) => o.id === selectedOptionId);
+      if (!option) throw new Error('Unknown answer.');
+
+      // Klucz (userId, dailyLessonId) jest unikalny – tylko jedno z równoległych kliknięć dostaje nagrodę.
+      const created = await tx.userDailyProgress.createMany({
+        data: [{ userId, dailyLessonId, selectedOptionId }],
+        skipDuplicates: true,
+      });
+      const firstCompletion = created.count === 1;
+
+      let xpGained = 0;
+      let streak: number;
+      if (firstCompletion) {
+        xpGained = lesson.rewardExp;
+        if (xpGained > 0) await tx.user.update({ where: { id: userId }, data: { experience: { increment: xpGained } } });
+        // streak tylko za dzisiejsze zadanie (archiwum daje XP, ale nie podbija serii)
+        streak =
+          lesson.dateKey === todayKey()
+            ? (await registerStreakActivity(tx, userId, now)).streak
+            : await currentStreak(tx, userId, now);
+      } else {
+        streak = await currentStreak(tx, userId, now);
+      }
+      return { firstCompletion, xpGained, streak, isCorrect: option.isOptimal };
     });
-  } catch {
-    // równoległe żądanie przypisało już dzisiejsze zadanie (unikalny dateKey) – nic do zrobienia
+
+    revalidatePath('/daily-lesson');
+    revalidatePath('/');
+    return { ok: true, ...result };
+  } catch (e) {
+    console.error('completeDaily failed', e);
+    return { ok: false, error: e instanceof Error ? e.message : 'Could not save your answer.' };
   }
 }
 
-export async function getDailyLessonsData(userId?: string) {
-  const todayKey = toDateKey(new Date());
-  await ensureTodaysLesson(todayKey);
-
-  const lessons = await prisma.dailyLesson.findMany({
-    where: {
-      dateKey: { lte: todayKey },
-    },
-    include: {
-      options: { orderBy: [{ order: 'asc' }, { id: 'asc' }] },
-    },
-    orderBy: { dateKey: 'desc' },
-  });
-
-  const lessonsByDate: Record<string, DailyLessonDTO> = {};
-  for (const lesson of lessons) {
-    if (lesson.dateKey) lessonsByDate[lesson.dateKey] = { ...lesson, dateKey: lesson.dateKey };
-  }
-
-  if (!userId) {
-    return {
-      lessonsByDate,
-      completedDates: [] as string[],
-      answersByDate: {} as Record<string, string>,
-      streak: 0,
-    };
-  }
-
-  const [user, progressList] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: userId },
-      select: { streak: true },
-    }),
-    prisma.userDailyProgress.findMany({
-      where: { userId },
-      include: {
-        dailyLesson: { select: { dateKey: true } },
-      },
-    }),
-  ]);
-
-  const completedDates: string[] = [];
-  const answersByDate: Record<string, string> = {};
-
-  for (const item of progressList) {
-    const key = item.dailyLesson.dateKey;
-    if (!key) continue;
-    completedDates.push(key);
-    answersByDate[key] = item.selectedOptionId;
-  }
-
-  return {
-    lessonsByDate,
-    completedDates,
-    answersByDate,
-    streak: user?.streak ?? 0,
-  };
-}
-
-export async function submitDailyAnswer(
-  userId: string,
-  dailyLessonId: string,
-  dateKey: string,
-  selectedOptionId: string
-) {
-  const todayKey = toDateKey(new Date());
-  const isToday = dateKey === todayKey;
-
-  const [existing, lesson] = await Promise.all([
-    prisma.userDailyProgress.findUnique({
-      where: {
-        userId_dailyLessonId: { userId, dailyLessonId },
-      },
-    }),
-    prisma.dailyLesson.findUnique({
-      where: { id: dailyLessonId },
-      select: { rewardExp: true },
-    }),
-  ]);
-
-  await prisma.userDailyProgress.upsert({
-    where: {
-      userId_dailyLessonId: { userId, dailyLessonId },
-    },
-    update: { selectedOptionId },
-    create: {
-      userId,
-      dailyLessonId,
-      selectedOptionId,
-    },
-  });
-
-  // Pierwsze ukończenie: dodaj XP (a jeśli to dzisiaj, również podbij streak)
-  if (!existing && lesson) {
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        experience: { increment: lesson.rewardExp },
-        ...(isToday
-          ? {
-              streak: { increment: 1 },
-              lastStreakUpdate: new Date(),
-            }
-          : {}),
-      },
-    });
-  }
-
-  revalidatePath('/daily-lesson');
-  return { alreadyCompleted: Boolean(existing) };
+async function currentStreak(db: Pick<typeof prisma, 'user'>, userId: string, now: Date) {
+  const user = await db.user.findUnique({ where: { id: userId }, select: { streak: true, lastStreakUpdate: true } });
+  return user ? getEffectiveStreak(user, now) : 0;
 }
