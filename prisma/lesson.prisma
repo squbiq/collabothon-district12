@@ -13,6 +13,8 @@ enum StepType {
   concept
   decision
   summary
+  fill
+  match
 }
 
 // Odpowiednik LessonStatus
@@ -26,7 +28,6 @@ enum LessonStatus {
 model Topic {
   id          String @id @default(cuid())
   topicTitle  String
-  orderNumber Int    @default(0) // kolejność zakładek na mapie lekcji
 
   Chapter     Chapter[]
 }
@@ -54,8 +55,6 @@ model Lesson {
   experience       Int     @default(0) @db.UnsignedInt
 
   // Zasób odblokowywany po ukończeniu lekcji (opcjonalny).
-  // Jeśli masz model Asset, zamień na relację:
-  //   unlockAsset   Asset? @relation(fields: [unlockAssetId], references: [id])
   unlockAssetId    String?
 
   targetPersonas   LessonPersona[]

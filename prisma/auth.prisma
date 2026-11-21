@@ -20,7 +20,7 @@ model User {
   sessions           Session[]
   accounts           Account[]
   userLessonProgress UserLessonProgress[]
-  userDailyProgress UserDailyProgress[]
+  userDailyProgress  UserDailyProgress[]
 
   @@unique([email])
   @@unique([username])

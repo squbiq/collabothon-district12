@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 export type TopicOption = { id: string; title: string };
 
 export async function getTopics(): Promise<TopicOption[]> {
-  const rows = await prisma.topic.findMany({ orderBy: [{ orderNumber: "asc" }, { topicTitle: "asc" }] });
+  const rows = await prisma.topic.findMany({ orderBy: [{ id: "asc" }, { topicTitle: "asc" }] });
   return rows.map((t) => ({ id: t.id, title: t.topicTitle }));
 }
 
