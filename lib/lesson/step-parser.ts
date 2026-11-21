@@ -3,6 +3,7 @@
 // Walidacja i normalizacja kroku wysyłanego z formularza (dane są niezaufane).
 // Wynik ma zawsze wszystkie kolumny kroku – nieużywane są null, dzięki czemu
 // zmiana typu kroku czyści stare pola.
+import { Prisma } from "@/gen/prisma/client";
 import type { StepInput } from "@/types/lesson-input";
 
 export type ParsedStep = {
@@ -16,6 +17,11 @@ export type ParsedStep = {
   keyTakeaways: string[] | null;
   options: { order: number; label: string; isOptimal: boolean; feedback: string }[];
 };
+
+// Typy kroków obsługiwane przez panel admina (enum w bazie ma też m.in. fill i match).
+export const EDITABLE_STEP_TYPES = ["story", "concept", "decision", "summary"] as const;
+export const isEditableStepType = (t: string): t is StepInput["type"] =>
+  (EDITABLE_STEP_TYPES as readonly string[]).includes(t);
 
 export type ParseResult = { ok: true; step: ParsedStep } | { ok: false; error: string };
 
@@ -76,4 +82,18 @@ export function parseStep(raw: StepInput): ParseResult {
     default:
       return fail("Unknown stage type.");
   }
+}
+
+// Kolumny kroku zapisywane do bazy (nieużywane pola czyszczą się do null).
+export function stepColumns(step: ParsedStep) {
+  return {
+    type: step.type,
+    title: step.title,
+    narrative: step.narrative,
+    explanation: step.explanation,
+    keyTakeaway: step.keyTakeaway,
+    scenario: step.scenario,
+    summary: step.summary,
+    keyTakeaways: step.keyTakeaways ?? Prisma.JsonNull,
+  };
 }

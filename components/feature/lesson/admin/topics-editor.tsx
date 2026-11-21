@@ -1,7 +1,6 @@
 // Edytor tematów: input + Enter dodaje temat, ołówek zmienia nazwę, kosz usuwa (tylko pusty temat).
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState, useTransition, type KeyboardEvent } from "react";
 import { Check, Pencil, Trash2, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -9,7 +8,6 @@ import { createTopic, deleteTopic, renameTopic } from "@/lib/lesson/topic-action
 import type { TopicOption } from "@/lib/lesson/topics";
 
 export function TopicsEditor({ topics }: { topics: TopicOption[] }) {
-  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [newTitle, setNewTitle] = useState("");
   const [editing, setEditing] = useState<{ id: string; title: string } | null>(null);
@@ -22,7 +20,6 @@ export function TopicsEditor({ topics }: { topics: TopicOption[] }) {
       const result = await action();
       if (!result.ok) return setError(result.error ?? "Something went wrong.");
       onSuccess?.();
-      router.refresh();
     });
   }
 

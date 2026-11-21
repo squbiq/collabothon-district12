@@ -4,6 +4,7 @@
 // To NIE jest plik "use server", więc funkcje nie są wystawione jako publiczne akcje.
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/session";
+import { isEditableStepType } from "./step-parser";
 import type { ChapterOption, LessonDataInput, StageDetails } from "@/types/lesson-input";
 
 export type LessonTreeStage = { id: string; title: string; type: StageDetails["type"] };
@@ -20,7 +21,11 @@ export async function getLessonTree(): Promise<LessonTreeItem[]> {
       steps: { orderBy: { order: "asc" }, select: { id: true, title: true, type: true } },
     },
   });
-  return rows.map(({ steps, ...lesson }) => ({ ...lesson, stages: steps }));
+  return rows.map(({ steps, ...lesson }) => ({
+    ...lesson,
+    // kroki typów, których panel nie umie edytować, nie trafiają do menu
+    stages: steps.flatMap((s) => (isEditableStepType(s.type) ? [{ ...s, type: s.type }] : [])),
+  }));
 }
 
 export async function getChapterOptions(): Promise<ChapterOption[]> {
@@ -60,7 +65,7 @@ export async function getStageForEdit(
     where: { id: stageId, lessonId },
     include: { options: { orderBy: { order: "asc" } }, lesson: { select: { title: true } } },
   });
-  if (!step) return null;
+  if (!step || !isEditableStepType(step.type)) return null;
 
   const base = { id: step.id, title: step.title };
   let stage: StageDetails;

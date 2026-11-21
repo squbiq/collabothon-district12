@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Flame, Mail, Star, User as UserIcon, CalendarDays, RefreshCw, Save, ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -51,16 +51,13 @@ export default function Profile() {
     })
     | undefined;
 
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
+  // Wersje robocze pól: null = użytkownik jeszcze nic nie zmieniał, pokazujemy dane z sesji.
+  // Dzięki temu nie trzeba kopiować sesji do stanu w efekcie.
+  const [usernameDraft, setUsernameDraft] = useState<string | null>(null);
+  const [emailDraft, setEmailDraft] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      setUsername(user.username ?? "");
-      setEmail(user.email ?? "");
-    }
-  }, [user]);
+  const username = usernameDraft ?? user?.username ?? "";
+  const email = emailDraft ?? user?.email ?? "";
 
   if (isPending) {
     return (
@@ -116,6 +113,9 @@ export default function Profile() {
         title: "Profil został zaktualizowany"
       });
       await refetch();
+      // po zapisie znów pokazujemy dane z sesji
+      setUsernameDraft(null);
+      setEmailDraft(null);
     } finally {
       setSaving(false);
     }
@@ -152,7 +152,7 @@ export default function Profile() {
                 <Input
                   id="username"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={(e) => setUsernameDraft(e.target.value)}
                   minLength={3}
                   maxLength={30}
                   required
@@ -168,7 +168,7 @@ export default function Profile() {
                   id="email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => setEmailDraft(e.target.value)}
                   required
                   className="h-12"
                 />

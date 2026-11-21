@@ -4,6 +4,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { isEditableStepType } from "./step-parser";
 import {
   PERSONAS,
   type CreateLessonInput,
@@ -214,7 +215,7 @@ export async function getLessonById(lessonId: string): Promise<LessonDetails | n
     estimatedMinutes: row.estimatedMinutes,
     unlockAssetId: row.unlockAssetId,
     targetPersonas: row.targetPersonas.map((p) => p.persona),
-    steps: row.steps.map((step): StepInput => {
+    steps: row.steps.filter((step) => isEditableStepType(step.type)).map((step): StepInput => {
       switch (step.type) {
         case "story":
           return {
@@ -249,6 +250,9 @@ export async function getLessonById(lessonId: string): Promise<LessonDetails | n
               ? (step.keyTakeaways as string[])
               : [],
           };
+        default:
+          // niedostępne – kroki innych typów odfiltrowaliśmy wyżej
+          throw new Error(`Unsupported step type: ${step.type}`);
       }
     }),
   };

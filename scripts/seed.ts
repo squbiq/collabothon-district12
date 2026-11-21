@@ -67,10 +67,9 @@ type SeedLesson = Omit<
 };
 
 // Tematy = ścieżki nauki z LESSON_PATHS (id tematu == parametr ?path= na mapie lekcji).
-const TOPICS: Prisma.TopicUncheckedCreateInput[] = LESSON_PATHS.map((path, index) => ({
+const TOPICS: Prisma.TopicUncheckedCreateInput[] = LESSON_PATHS.map((path) => ({
   id: path.id,
-  topicTitle: path.name,
-  orderNumber: index + 1,
+  topicTitle: path.name
 }));
 
 // Każdy temat ma "Chapter 1"; "stock-investor" dodatkowo "Chapter 2" (test grupowania po chapterTitle).
@@ -229,7 +228,7 @@ async function seedLessons() {
     await prisma.topic.upsert({
       where: { id: topic.id! },
       create: topic,
-      update: { topicTitle: topic.topicTitle, orderNumber: topic.orderNumber },
+      update: { topicTitle: topic.topicTitle },
     });
   }
 

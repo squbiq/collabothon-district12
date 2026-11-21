@@ -4,7 +4,7 @@
 // Każda akcja sama sprawdza rolę admina – akcje są publicznymi endpointami.
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { refresh as refreshRouter, revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 
@@ -22,6 +22,8 @@ async function isAdmin() {
 function refresh() {
   revalidatePath("/panel/lesson", "layout");
   revalidatePath("/lesson-map");
+  // odświeża też widok klienta, który wywołał akcję
+  refreshRouter();
 }
 
 export async function createTopic(title: string): Promise<Result<{ id: string }>> {

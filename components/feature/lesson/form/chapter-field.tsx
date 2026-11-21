@@ -1,7 +1,6 @@
 // Wybór rozdziału z wybranego tematu + dodawanie nowego rozdziału (input i Enter).
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState, useTransition, type KeyboardEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,7 +16,6 @@ type Props = {
 };
 
 export function ChapterField({ topicId, chapters, value, onChange }: Props) {
-  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [newTitle, setNewTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -32,8 +30,7 @@ export function ChapterField({ topicId, chapters, value, onChange }: Props) {
       const result = await createChapter(topicId, newTitle);
       if (!result.ok) return setError(result.error);
       setNewTitle("");
-      onChange(result.id);
-      router.refresh(); // lista rozdziałów przyjdzie z serwera
+      onChange(result.id); // lista rozdziałów przyjdzie z serwera (akcja odświeża widok)
     });
   }
 

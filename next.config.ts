@@ -13,6 +13,10 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  experimental: {
+    // import lekcji z pliku JSON wysyła cały plik do akcji serwerowej (domyślnie max 1 MB)
+    serverActions: { bodySizeLimit: "5mb" },
+  },
   serverExternalPackages: ["@prisma/adapter-mariadb", "mariadb"],
 };
 

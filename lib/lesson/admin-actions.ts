@@ -5,12 +5,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { Prisma } from "@/gen/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { PERSONAS, type LessonDataInput, type StepInput } from "@/types/lesson-input";
 import { defaultStage } from "./default-stage";
-import { parseStep, type ParsedStep } from "./step-parser";
+import { parseStep, stepColumns } from "./step-parser";
 
 type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string };
 
@@ -26,20 +25,6 @@ async function isAdmin() {
 function refresh() {
   revalidatePath("/panel/lesson", "layout");
   revalidatePath("/lesson-map");
-}
-
-// Kolumny kroku zapisywane do bazy (nieużywane pola czyszczą się do null).
-function stepColumns(step: ParsedStep) {
-  return {
-    type: step.type,
-    title: step.title,
-    narrative: step.narrative,
-    explanation: step.explanation,
-    keyTakeaway: step.keyTakeaway,
-    scenario: step.scenario,
-    summary: step.summary,
-    keyTakeaways: step.keyTakeaways ?? Prisma.JsonNull,
-  };
 }
 
 async function parseLessonData(input: LessonDataInput) {
