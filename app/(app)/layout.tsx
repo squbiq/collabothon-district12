@@ -7,6 +7,7 @@ import { cn } from "cn";
 import {
   BookOpen,
   CalendarDays,
+  Swords,
   Home,
   LogIn,
   LogOut,
@@ -51,7 +52,7 @@ const navLinks: { href: string; title: string; icon: LucideIcon }[] = [
   { href: "/", title: "Home", icon: Home },
   { href: "/daily-lesson", title: "Daily lesson", icon: CalendarDays },
   { href: "/lesson-map", title: "Lessons", icon: BookOpen },
-  //{ href: "/arena", title: "Arena", icon: Swords },
+  { href: "/arena", title: "Arena", icon: Swords },
   { href: "/rankings", title: "Rankings", icon: Trophy },
 ];
 
