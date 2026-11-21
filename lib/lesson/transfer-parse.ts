@@ -64,10 +64,7 @@ export function parseLessonFile(text: string): ParseFileResult {
       try {
         const parsed = parseStep(raw as unknown as StepInput);
         if (!parsed.ok) return fail(`${where}: ${parsed.error}`);
-        const { step } = parsed;
-        if (step.title.length > MAX_VARCHAR || step.options.some((o) => o.label.length > MAX_VARCHAR)) {
-          return fail(`${where}: a title or option label is too long (max ${MAX_VARCHAR} characters).`);
-        }
+        const { step } = parsed; // parseStep pilnuje też długości tytułu i opcji
         steps.push(step);
       } catch {
         return fail(`${where}: malformed stage data.`);

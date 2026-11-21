@@ -1,27 +1,20 @@
 // lib/lesson/step-parser.ts
 //
 // Walidacja i normalizacja kroku wysyłanego z formularza (dane są niezaufane).
-// Wynik ma zawsze wszystkie kolumny kroku – nieużywane są null, dzięki czemu
-// zmiana typu kroku czyści stare pola.
+// Wynik to wspólne kolumny (type, title) + `data` – jedyny Json z zawartością kroku
+// (kształt dla każdego typu opisuje types/step-data.ts).
 import { Prisma } from "@/gen/prisma/client";
 import type { StepInput } from "@/types/lesson-input";
+import type { StepData, StepKind } from "@/types/step-data";
 import { isInteractiveType, parseConfig } from "./interactive-config";
 
 export type ParsedStep = {
-  type: StepInput["type"];
+  type: StepKind;
   title: string;
-  narrative: string | null;
-  explanation: string | null;
-  keyTakeaway: string | null;
-  scenario: string | null;
-  summary: string | null;
-  keyTakeaways: string[] | null;
-  pairs: { term: string; definition: string }[] | null;
-  config: object | null;
-  options: { order: number; label: string; isOptimal: boolean; feedback: string }[];
+  data: StepData;
 };
 
-// Typy kroków obsługiwane przez panel admina (enum w bazie ma też m.in. fill i match).
+// Typy kroków obsługiwane przez panel admina.
 export const EDITABLE_STEP_TYPES = ["story", "concept", "decision", "summary", "matching", "growth", "budget", "risk", "estimate"] as const;
 export const isEditableStepType = (t: string): t is StepInput["type"] =>
   (EDITABLE_STEP_TYPES as readonly string[]).includes(t);
@@ -39,8 +32,12 @@ const fail = (error: string): ParseResult => ({ ok: false, error });
 export function parseStep(raw: StepInput): ParseResult {
   try {
     const result = parseStepUnsafe(raw);
-    if (result.ok && (result.step.title.length > MAX_VARCHAR || result.step.options.some((o) => o.label.length > MAX_VARCHAR))) {
-      return fail(`A title or option label is too long (max ${MAX_VARCHAR} characters).`);
+    if (result.ok) {
+      const { step } = result;
+      const labels = step.type === "decision" ? (step.data as StepData<"decision">).options.map((o) => o.label) : [];
+      if (step.title.length > MAX_VARCHAR || labels.some((l) => l.length > MAX_VARCHAR)) {
+        return fail(`A title or option label is too long (max ${MAX_VARCHAR} characters).`);
+      }
     }
     return result;
   } catch {
@@ -51,37 +48,24 @@ export function parseStep(raw: StepInput): ParseResult {
 function parseStepUnsafe(raw: StepInput): ParseResult {
   const title = clean(raw.title);
   if (!title) return fail("Enter a stage title.");
-
-  const base: ParsedStep = {
-    type: raw.type,
-    title,
-    narrative: null,
-    explanation: null,
-    keyTakeaway: null,
-    scenario: null,
-    summary: null,
-    keyTakeaways: null,
-    pairs: null,
-    config: null,
-    options: [],
-  };
+  const ok = (data: StepData): ParseResult => ({ ok: true, step: { type: raw.type, title, data } });
 
   switch (raw.type) {
     case "story": {
       const narrative = clean(raw.narrative);
       if (!narrative) return fail("Enter the story text.");
-      return { ok: true, step: { ...base, narrative } };
+      return ok({ narrative });
     }
     case "concept": {
       const explanation = clean(raw.explanation);
       const keyTakeaway = clean(raw.keyTakeaway);
       if (!explanation || !keyTakeaway) return fail("Fill in the explanation and the key takeaway.");
-      return { ok: true, step: { ...base, explanation, keyTakeaway } };
+      return ok({ explanation, keyTakeaway });
     }
     case "decision": {
       const scenario = clean(raw.scenario);
       const options = (Array.isArray(raw.options) ? raw.options : []).map((o, i) => ({
-        order: i + 1,
+        id: `option-${i + 1}`,
         label: clean(o.label),
         isOptimal: o.isOptimal === true,
         feedback: clean(o.feedback),
@@ -91,15 +75,13 @@ function parseStepUnsafe(raw: StepInput): ParseResult {
         return fail("Add at least 2 options, each with a label and feedback.");
       }
       if (!options.some((o) => o.isOptimal)) return fail("Mark the best option.");
-      return { ok: true, step: { ...base, scenario, options } };
+      return ok({ scenario, options });
     }
     case "summary": {
       const summary = clean(raw.summary);
-      const keyTakeaways = (Array.isArray(raw.keyTakeaways) ? raw.keyTakeaways : [])
-        .map(clean)
-        .filter(Boolean);
+      const keyTakeaways = (Array.isArray(raw.keyTakeaways) ? raw.keyTakeaways : []).map(clean).filter(Boolean);
       if (!summary) return fail("Enter the summary.");
-      return { ok: true, step: { ...base, summary, keyTakeaways } };
+      return ok({ summary, keyTakeaways });
     }
     case "matching": {
       const pairs = (Array.isArray(raw.pairs) ? raw.pairs : []).map((p) => ({
@@ -116,7 +98,7 @@ function parseStepUnsafe(raw: StepInput): ParseResult {
       if (terms.size !== pairs.length || definitions.size !== pairs.length) {
         return fail("Each term and each definition must be unique.");
       }
-      return { ok: true, step: { ...base, pairs } };
+      return ok({ pairs });
     }
     case "growth":
     case "budget":
@@ -124,27 +106,20 @@ function parseStepUnsafe(raw: StepInput): ParseResult {
     case "estimate": {
       const type = raw.type;
       if (!isInteractiveType(type)) return fail("Unknown stage type.");
-      const parsed = parseConfig(type, (raw as { config?: unknown }).config);
+      const parsed = parseConfig(type, raw.config);
       if (!parsed.ok) return fail(parsed.error);
-      return { ok: true, step: { ...base, config: parsed.config } };
+      return ok(parsed.config);
     }
     default:
       return fail("Unknown stage type.");
   }
 }
 
-// Kolumny kroku zapisywane do bazy (nieużywane pola czyszczą się do null).
+// Kolumny kroku zapisywane do bazy.
 export function stepColumns(step: ParsedStep) {
   return {
     type: step.type,
     title: step.title,
-    narrative: step.narrative,
-    explanation: step.explanation,
-    keyTakeaway: step.keyTakeaway,
-    scenario: step.scenario,
-    summary: step.summary,
-    keyTakeaways: step.keyTakeaways ?? Prisma.JsonNull,
-    pairs: step.pairs ?? Prisma.JsonNull,
-    config: step.config ?? Prisma.JsonNull,
+    data: step.data as unknown as Prisma.InputJsonObject,
   };
 }

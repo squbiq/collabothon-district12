@@ -85,7 +85,7 @@ export async function createLessonWithStage(input: LessonDataInput): Promise<Res
         order: order ?? lastOrder + 1,
         targetPersonas: { create: personas.map((persona) => ({ persona })) },
         steps: {
-          create: [{ order: 1, ...stepColumns(first.step), options: { create: first.step.options } }],
+          create: [{ order: 1, ...stepColumns(first.step) }],
         },
       },
       select: { id: true },
@@ -157,7 +157,6 @@ export async function createStage(
         lessonId,
         order: (last._max.order ?? 0) + 1,
         ...stepColumns(parsed.step),
-        options: { create: parsed.step.options },
       },
       select: { id: true },
     });
@@ -182,13 +181,7 @@ export async function updateStage(
     const existing = await prisma.lessonStep.findFirst({ where: { id: stageId, lessonId }, select: { id: true } });
     if (!existing) return fail("Stage not found.");
 
-    await prisma.$transaction([
-      prisma.decisionOption.deleteMany({ where: { stepId: stageId } }),
-      prisma.lessonStep.update({
-        where: { id: stageId },
-        data: { ...stepColumns(parsed.step), options: { create: parsed.step.options } },
-      }),
-    ]);
+    await prisma.lessonStep.update({ where: { id: stageId }, data: stepColumns(parsed.step) });
     refresh();
     return { ok: true };
   } catch (e) {

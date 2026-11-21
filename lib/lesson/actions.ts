@@ -3,33 +3,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { Prisma } from "@/gen/prisma/client";
 import { prisma } from "@/lib/prisma";
-import { isEditableStepType, parseStep } from "./step-parser";
+import { parseStep, stepColumns } from "./step-parser";
+import { rowToStepInput } from "./step-data";
 import {
   PERSONAS,
   type CreateLessonInput,
   type CreateLessonResult,
-  type StepInput,
 } from "@/types/lesson-input";
 import { ChapterOption, LessonSummary, LessonDetails } from "@/types/lesson-input";
-
-type StepCreate = {
-  order: number;
-  type: StepInput["type"];
-  title: string;
-  narrative?: string;
-  explanation?: string;
-  keyTakeaway?: string;
-  scenario?: string;
-  summary?: string;
-  keyTakeaways?: string[];
-  pairs?: { term: string; definition: string }[];
-  config?: Prisma.InputJsonValue;
-  options?: {
-    create: { order: number; label: string; isOptimal: boolean; feedback: string }[];
-  };
-};
 
 const fail = (error: string): CreateLessonResult => ({ ok: false, error });
 const clean = (v: unknown) => (typeof v === "string" ? v.trim() : "");
@@ -61,93 +43,13 @@ export async function createLesson(
     return fail("Dodaj co najmniej jeden krok.");
   }
 
-  const stepsData: StepCreate[] = [];
+  const stepsData: ({ order: number } & ReturnType<typeof stepColumns>)[] = [];
 
   for (const [i, raw] of input.steps.entries()) {
-    const label = `Krok ${i + 1}`;
-    const stepTitle = clean(raw.title);
-    if (!stepTitle) return fail(`${label}: podaj tytuł.`);
-
-    switch (raw.type) {
-      case "story": {
-        const narrative = clean(raw.narrative);
-        if (!narrative) return fail(`${label}: wpisz treść historii.`);
-        stepsData.push({ order: i + 1, type: "story", title: stepTitle, narrative });
-        break;
-      }
-      case "concept": {
-        const explanation = clean(raw.explanation);
-        const keyTakeaway = clean(raw.keyTakeaway);
-        if (!explanation || !keyTakeaway) {
-          return fail(`${label}: uzupełnij wyjaśnienie i najważniejszy wniosek.`);
-        }
-        stepsData.push({
-          order: i + 1,
-          type: "concept",
-          title: stepTitle,
-          explanation,
-          keyTakeaway,
-        });
-        break;
-      }
-      case "decision": {
-        const scenario = clean(raw.scenario);
-        const options = (Array.isArray(raw.options) ? raw.options : []).map((o, j) => ({
-          order: j + 1,
-          label: clean(o.label),
-          isOptimal: o.isOptimal === true,
-          feedback: clean(o.feedback),
-        }));
-        if (!scenario) return fail(`${label}: opisz scenariusz.`);
-        if (options.length < 2 || options.some((o) => !o.label || !o.feedback)) {
-          return fail(`${label}: dodaj co najmniej 2 opcje, każda z treścią i feedbackiem.`);
-        }
-        if (!options.some((o) => o.isOptimal)) {
-          return fail(`${label}: zaznacz najlepszą opcję.`);
-        }
-        stepsData.push({
-          order: i + 1,
-          type: "decision",
-          title: stepTitle,
-          scenario,
-          options: { create: options },
-        });
-        break;
-      }
-      case "summary": {
-        const summary = clean(raw.summary);
-        const keyTakeaways = (Array.isArray(raw.keyTakeaways) ? raw.keyTakeaways : [])
-          .map(clean)
-          .filter(Boolean);
-        if (!summary) return fail(`${label}: wpisz podsumowanie.`);
-        stepsData.push({
-          order: i + 1,
-          type: "summary",
-          title: stepTitle,
-          summary,
-          keyTakeaways,
-        });
-        break;
-      }
-      case "matching": {
-        // walidacja jak w panelu admina (liczba i unikalność par)
-        const parsed = parseStep(raw);
-        if (!parsed.ok) return fail(`${label}: ${parsed.error}`);
-        stepsData.push({ order: i + 1, type: "matching", title: stepTitle, pairs: parsed.step.pairs ?? [] });
-        break;
-      }
-      case "growth":
-      case "budget":
-      case "risk":
-      case "estimate": {
-        const parsed = parseStep(raw);
-        if (!parsed.ok) return fail(`${label}: ${parsed.error}`);
-        stepsData.push({ order: i + 1, type: raw.type, title: stepTitle, config: parsed.step.config as Prisma.InputJsonValue });
-        break;
-      }
-      default:
-        return fail(`${label}: nieznany typ kroku.`);
-    }
+    // walidacja jak w panelu admina
+    const parsed = parseStep(raw);
+    if (!parsed.ok) return fail(`Krok ${i + 1}: ${parsed.error}`);
+    stepsData.push({ order: i + 1, ...stepColumns(parsed.step) });
   }
 
   try {
@@ -215,12 +117,7 @@ export async function getLessonById(lessonId: string): Promise<LessonDetails | n
     where: { id: lessonId },
     include: {
       targetPersonas: true,
-      steps: {
-        orderBy: { order: "asc" },
-        include: {
-          options: { orderBy: { order: "asc" } },
-        },
-      },
+      steps: { orderBy: { order: "asc" } },
     },
   });
 
@@ -236,56 +133,9 @@ export async function getLessonById(lessonId: string): Promise<LessonDetails | n
     experience: row.experience,
     unlockAssetId: row.unlockAssetId,
     targetPersonas: row.targetPersonas.map((p) => p.persona),
-    steps: row.steps.filter((step) => isEditableStepType(step.type)).map((step): StepInput => {
-      switch (step.type) {
-        case "story":
-          return {
-            type: "story",
-            title: step.title,
-            narrative: step.narrative ?? "",
-          };
-        case "concept":
-          return {
-            type: "concept",
-            title: step.title,
-            explanation: step.explanation ?? "",
-            keyTakeaway: step.keyTakeaway ?? "",
-          };
-        case "decision":
-          return {
-            type: "decision",
-            title: step.title,
-            scenario: step.scenario ?? "",
-            options: step.options.map((o) => ({
-              label: o.label,
-              isOptimal: o.isOptimal,
-              feedback: o.feedback,
-            })),
-          };
-        case "summary":
-          return {
-            type: "summary",
-            title: step.title,
-            summary: step.summary ?? "",
-            keyTakeaways: Array.isArray(step.keyTakeaways)
-              ? (step.keyTakeaways as string[])
-              : [],
-          };
-        case "matching":
-          return {
-            type: "matching",
-            title: step.title,
-            pairs: Array.isArray(step.pairs) ? (step.pairs as { term: string; definition: string }[]) : [],
-          };
-        case "growth":
-        case "budget":
-        case "risk":
-        case "estimate":
-          return { type: step.type, title: step.title, config: step.config ?? {} } as StepInput;
-        default:
-          // niedostępne – kroki innych typów odfiltrowaliśmy wyżej
-          throw new Error(`Unsupported step type: ${step.type}`);
-      }
+    steps: row.steps.flatMap((step) => {
+      const input = rowToStepInput(step);
+      return input ? [input] : [];
     }),
   };
 }
@@ -346,48 +196,9 @@ export async function updateLesson(
           },
           steps: {
             create: input.steps.map((step, index) => {
-              const baseStep = {
-                order: index + 1,
-                type: step.type,
-                title: step.title,
-              };
-
-              switch (step.type) {
-                case "story":
-                  return { ...baseStep, narrative: step.narrative };
-                case "concept":
-                  return {
-                    ...baseStep,
-                    explanation: step.explanation,
-                    keyTakeaway: step.keyTakeaway,
-                  };
-                case "decision":
-                  return {
-                    ...baseStep,
-                    scenario: step.scenario,
-                    options: {
-                      create: step.options.map((opt, optIndex) => ({
-                        order: optIndex + 1,
-                        label: opt.label,
-                        isOptimal: opt.isOptimal,
-                        feedback: opt.feedback,
-                      })),
-                    },
-                  };
-                case "summary":
-                  return {
-                    ...baseStep,
-                    summary: step.summary,
-                    keyTakeaways: step.keyTakeaways,
-                  };
-                case "matching":
-                  return { ...baseStep, pairs: step.pairs.map(({ term, definition }) => ({ term, definition })) };
-                case "growth":
-                case "budget":
-                case "risk":
-                case "estimate":
-                  return { ...baseStep, config: step.config as unknown as Prisma.InputJsonValue };
-              }
+              const parsed = parseStep(step);
+              if (!parsed.ok) throw new Error(`Krok ${index + 1}: ${parsed.error}`);
+              return { order: index + 1, ...stepColumns(parsed.step) };
             }),
           },
         },

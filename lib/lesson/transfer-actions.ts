@@ -14,6 +14,7 @@ import {
   type LessonExportLesson,
 } from "@/types/lesson-transfer";
 import type { StepInput } from "@/types/lesson-input";
+import { rowToStepInput } from "./step-data";
 import { stepColumns } from "./step-parser";
 import { parseLessonFile, type ParsedLesson } from "./transfer-parse";
 
@@ -21,17 +22,6 @@ type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string };
 
 const fail = (error: string): { ok: false; error: string } => ({ ok: false, error });
 const MAX_IMPORT_CHARS = 4_500_000;
-
-// Pary z kolumny Json – pomija elementy o złym kształcie.
-function toPairs(value: unknown): { term: string; definition: string }[] {
-  if (!Array.isArray(value)) return [];
-  return value.flatMap((item) => {
-    const p = item as { term?: unknown; definition?: unknown } | null;
-    return p && typeof p.term === "string" && typeof p.definition === "string"
-      ? [{ term: p.term, definition: p.definition }]
-      : [];
-  });
-}
 
 async function isAdmin() {
   const session = await getSession();
@@ -59,7 +49,7 @@ export async function exportLessons(
       include: {
         chapter: { include: { Topic: true } },
         targetPersonas: true,
-        steps: { orderBy: { order: "asc" }, include: { options: { orderBy: { order: "asc" } } } },
+        steps: { orderBy: { order: "asc" } },
       },
     });
     if (rows.length === 0) return fail("There are no lessons to export.");
@@ -68,41 +58,8 @@ export async function exportLessons(
     for (const row of rows) {
       const steps: StepInput[] = [];
       for (const s of row.steps) {
-        switch (s.type) {
-          case "story":
-            steps.push({ type: "story", title: s.title, narrative: s.narrative ?? "" });
-            break;
-          case "concept":
-            steps.push({ type: "concept", title: s.title, explanation: s.explanation ?? "", keyTakeaway: s.keyTakeaway ?? "" });
-            break;
-          case "decision":
-            steps.push({
-              type: "decision",
-              title: s.title,
-              scenario: s.scenario ?? "",
-              options: s.options.map((o) => ({ label: o.label, isOptimal: o.isOptimal, feedback: o.feedback })),
-            });
-            break;
-          case "summary":
-            steps.push({
-              type: "summary",
-              title: s.title,
-              summary: s.summary ?? "",
-              keyTakeaways: Array.isArray(s.keyTakeaways) ? s.keyTakeaways.filter((k): k is string => typeof k === "string") : [],
-            });
-            break;
-          case "matching":
-            steps.push({ type: "matching", title: s.title, pairs: toPairs(s.pairs) });
-            break;
-          case "growth":
-          case "budget":
-          case "risk":
-          case "estimate":
-            if (s.config && typeof s.config === "object") {
-              steps.push({ type: s.type, title: s.title, config: s.config } as StepInput);
-            }
-            break;
-        }
+        const input = rowToStepInput(s);
+        if (input) steps.push(input);
       }
 
       const strip = options.stripIds === true;
@@ -209,7 +166,6 @@ export async function importLessons(
               create: lesson.steps.map((step, i) => ({
                 order: i + 1,
                 ...stepColumns(step),
-                options: { create: step.options },
               })),
             },
           };

@@ -81,50 +81,26 @@ model LessonPersona {
   @@id([lessonId, persona])
 }
 
-// Krok lekcji. Jedna tabela na wszystkie 5 typów kroków:
-// wypełnione są tylko pola pasujące do `type`, reszta zostaje NULL.
+// Krok lekcji. Wspólne kolumny + jeden Json `data`, którego kształt zależy od `type`
+// (dokładny opis: types/step-data.ts, walidacja: lib/lesson/step-parser.ts):
 //
-//   story    -> narrative
-//   concept  -> explanation, keyTakeaway
-//   decision -> scenario + options (tabela DecisionOption)
-//   summary  -> summary, keyTakeaways
-//   matching -> pairs (Json: [{ term, definition }])
-//   growth, budget, risk, estimate -> config (Json, kształt zależy od typu)
+//   story    -> { narrative }
+//   concept  -> { explanation, keyTakeaway }
+//   decision -> { scenario, options: [{ id, label, isOptimal, feedback }] }
+//   summary  -> { summary, keyTakeaways: string[] }
+//   matching -> { pairs: [{ term, definition }] }
+//   growth / budget / risk / estimate -> konfiguracja zadania (types/interactive.ts)
 model LessonStep {
   id       String   @id @default(cuid())
   lessonId String
   order    Int      // kolejność kroku w lekcji
   type     StepType
   title    String
+  data     Json
 
-  narrative    String? @db.Text
-  explanation  String? @db.Text
-  keyTakeaway  String? @db.Text
-  scenario     String? @db.Text
-  summary      String? @db.Text
-  keyTakeaways Json?
-  pairs        Json?
-  // Ustawienia kroków interaktywnych (growth / budget / risk / estimate)
-  config       Json?
-
-  options DecisionOption[]
-  lesson  Lesson           @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lesson   Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
   @@unique([lessonId, order])
-}
-
-// Opcja w kroku typu "decision"
-model DecisionOption {
-  id        String  @id @default(cuid())
-  stepId    String
-  order     Int
-  label     String
-  isOptimal Boolean @default(false)
-  feedback  String  @db.Text
-
-  step LessonStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
-
-  @@index([stepId])
 }
 
 // Status lekcji jest osobny dla każdego użytkownika,

@@ -47,15 +47,8 @@ const USERS: SeedUser[] = [
 
 // ---------- Treści lekcji ----------
 
-type SeedOption = Omit<Prisma.DecisionOptionUncheckedCreateInput, "id" | "stepId" | "order">;
-
-type SeedStep = Omit<
-  Prisma.LessonStepUncheckedCreateInput,
-  "id" | "lessonId" | "order" | "options" | "keyTakeaways"
-> & {
-  keyTakeaways?: string[];
-  options?: SeedOption[];
-};
+// Krok seeda: wspólne kolumny + `data` (kształt wg types/step-data.ts).
+type SeedStep = { type: StepType; title: string; data: Prisma.InputJsonObject };
 
 type SeedLesson = Omit<
   Prisma.LessonUncheckedCreateInput,
@@ -92,29 +85,37 @@ const fullSteps = (topic: string): SeedStep[] => [
   {
     type: StepType.story,
     title: `A story about ${topic}`,
-    narrative: `Anna just got her first salary and wondered what to do with it.\n\nA friend told her to learn about ${topic} before spending anything.`,
+    data: {
+      narrative: `Anna just got her first salary and wondered what to do with it.\n\nA friend told her to learn about ${topic} before spending anything.`,
+    },
   },
   {
     type: StepType.concept,
     title: `What is ${topic}?`,
-    explanation: `${topic} is a habit of planning money before it is spent.\n\nIt helps you see where money goes and what is left for your goals.`,
-    keyTakeaway: `Plan first, spend second.`,
+    data: {
+      explanation: `${topic} is a habit of planning money before it is spent.\n\nIt helps you see where money goes and what is left for your goals.`,
+      keyTakeaway: `Plan first, spend second.`,
+    },
   },
   {
     type: StepType.decision,
     title: "What would you do?",
-    scenario: "You receive 1000 PLN. Rent is already paid. What is your next move?",
-    options: [
-      { label: "Spend it all on something fun", isOptimal: false, feedback: "Fun matters, but nothing is left for emergencies." },
-      { label: "Split it: needs, savings, fun", isOptimal: true, feedback: "A split keeps you safe today and ready for tomorrow." },
-      { label: "Hide it under the mattress", isOptimal: false, feedback: "Saving is good, but inflation slowly eats cash." },
-    ],
+    data: {
+      scenario: "You receive 1000 PLN. Rent is already paid. What is your next move?",
+      options: [
+        { id: "option-1", label: "Spend it all on something fun", isOptimal: false, feedback: "Fun matters, but nothing is left for emergencies." },
+        { id: "option-2", label: "Split it: needs, savings, fun", isOptimal: true, feedback: "A split keeps you safe today and ready for tomorrow." },
+        { id: "option-3", label: "Hide it under the mattress", isOptimal: false, feedback: "Saving is good, but inflation slowly eats cash." },
+      ],
+    },
   },
   {
     type: StepType.summary,
     title: "Summary",
-    summary: `You learned why ${topic} matters and how to start.`,
-    keyTakeaways: ["Plan before you spend", "Keep a safety buffer", "Review your plan every month"],
+    data: {
+      summary: `You learned why ${topic} matters and how to start.`,
+      keyTakeaways: ["Plan before you spend", "Keep a safety buffer", "Review your plan every month"],
+    },
   },
 ];
 
@@ -254,18 +255,8 @@ async function seedLessons() {
       });
     }
 
-    for (const [index, { options, keyTakeaways, ...step }] of steps.entries()) {
-      await prisma.lessonStep.create({
-        data: {
-          ...step,
-          lessonId: id,
-          order: index + 1,
-          ...(keyTakeaways ? { keyTakeaways } : {}),
-          ...(options
-            ? { options: { create: options.map((o, i) => ({ ...o, order: i + 1 })) } }
-            : {}),
-        },
-      });
+    for (const [index, step] of steps.entries()) {
+      await prisma.lessonStep.create({ data: { ...step, lessonId: id, order: index + 1 } });
     }
   }
 

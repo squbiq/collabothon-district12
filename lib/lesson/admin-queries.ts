@@ -4,23 +4,12 @@
 // To NIE jest plik "use server", więc funkcje nie są wystawione jako publiczne akcje.
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/session";
-import { DEFAULT_CONFIGS } from "./interactive-config";
 import { isEditableStepType } from "./step-parser";
+import { rowToStepInput } from "./step-data";
 import type { ChapterOption, LessonDataInput, StageDetails } from "@/types/lesson-input";
 
 export type LessonTreeStage = { id: string; title: string; type: StageDetails["type"] };
 export type LessonTreeItem = { id: string; title: string; stages: LessonTreeStage[] };
-
-// Json z bazy -> pary do formularza (bez filtrowania pustych, żeby admin widział zapisany stan)
-function toPairs(value: unknown): { term: string; definition: string }[] {
-  if (!Array.isArray(value)) return [];
-  return value.flatMap((item) => {
-    const p = item as { term?: unknown; definition?: unknown } | null;
-    return p && typeof p.term === "string" && typeof p.definition === "string"
-      ? [{ term: p.term, definition: p.definition }]
-      : [];
-  });
-}
 
 // Wszystkie lekcje z etapami – dane dla BranchedMenu.
 export async function getLessonTree(): Promise<LessonTreeItem[]> {
@@ -76,57 +65,14 @@ export async function getStageForEdit(
   await requireAdmin();
   const step = await prisma.lessonStep.findFirst({
     where: { id: stageId, lessonId },
-    include: { options: { orderBy: { order: "asc" } }, lesson: { select: { title: true } } },
+    include: { lesson: { select: { title: true } } },
   });
-  if (!step || !isEditableStepType(step.type)) return null;
+  const input = step && rowToStepInput(step);
+  if (!step || !input) return null;
 
-  const base = { id: step.id, title: step.title };
-  let stage: StageDetails;
-
-  switch (step.type) {
-    case "story":
-      stage = { ...base, type: "story", narrative: step.narrative ?? "" };
-      break;
-    case "concept":
-      stage = {
-        ...base,
-        type: "concept",
-        explanation: step.explanation ?? "",
-        keyTakeaway: step.keyTakeaway ?? "",
-      };
-      break;
-    case "decision":
-      stage = {
-        ...base,
-        type: "decision",
-        scenario: step.scenario ?? "",
-        options: step.options.map(({ label, isOptimal, feedback }) => ({ label, isOptimal, feedback })),
-      };
-      break;
-    case "summary":
-      stage = {
-        ...base,
-        type: "summary",
-        summary: step.summary ?? "",
-        keyTakeaways: Array.isArray(step.keyTakeaways) ? (step.keyTakeaways as string[]) : [],
-      };
-      break;
-    case "matching":
-      stage = { ...base, type: "matching", pairs: toPairs(step.pairs) };
-      break;
-    case "growth":
-    case "budget":
-    case "risk":
-    case "estimate": {
-      // zapisane ustawienia (mogły być zmienione ręcznie w bazie) – bez walidacji, żeby admin mógł je poprawić
-      const config = (step.config && typeof step.config === "object" ? step.config : DEFAULT_CONFIGS[step.type]) as never;
-      stage = { ...base, type: step.type, config } as StageDetails;
-      break;
-    }
-  }
-
-  return { lessonTitle: step.lesson.title, position: step.order, stage };
+  return { lessonTitle: step.lesson.title, position: step.order, stage: { ...input, id: step.id } };
 }
+
 export type TopicForEdit = {
   id: string;
   title: string;
