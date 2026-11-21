@@ -11,8 +11,8 @@ import { TopicsEditorLoader } from "@/components/feature/lesson/admin/topics-edi
 
 export default function LessonAdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex w-full min-w-0 items-start gap-8 px-8 pb-10">
-      <aside className="sticky top-6 flex w-72 shrink-0 flex-col gap-4">
+    <div className="flex w-full min-w-0 flex-col items-stretch gap-6 px-4 pb-10 sm:px-8 lg:flex-row lg:items-start lg:gap-8">
+      <aside className="flex w-full shrink-0 flex-col gap-4 lg:sticky lg:top-6 lg:w-72">
         <Link href="/panel/lesson/create" className={chunkyButtonVariants({ tone: "success", size: "lg", fullWidth: true })}>
           <Plus /> Create lesson
         </Link>

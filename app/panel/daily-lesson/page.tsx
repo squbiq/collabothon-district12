@@ -28,7 +28,7 @@ async function PoolContent() {
 
 export default function DailyLessonAdminPage() {
   return (
-    <div className="flex w-full max-w-3xl min-w-0 flex-col gap-4 px-8 pb-10">
+    <div className="flex w-full max-w-3xl min-w-0 flex-col gap-4 px-4 pb-10 sm:px-8">
       <header className="flex items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
           <h1 className="text-3xl font-extrabold text-foreground">Daily lessons</h1>

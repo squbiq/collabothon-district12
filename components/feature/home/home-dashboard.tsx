@@ -45,7 +45,7 @@ export function HomeDashboard({ data }: { data: Data }) {
 function StreakCard({ user }: { user: NonNullable<Data["user"]> }) {
   return (
     <section aria-label="Your streak" className={cn(card, "justify-between")}>
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4">
         <div className={cn("flex size-16 items-center justify-center rounded-2xl", user.streak > 0 ? "bg-orange-100 text-orange-500 dark:bg-orange-950" : "bg-muted text-muted-foreground")}>
           <Flame className="size-9" />
         </div>
@@ -53,7 +53,7 @@ function StreakCard({ user }: { user: NonNullable<Data["user"]> }) {
           <p className="text-4xl font-extrabold text-foreground tabular-nums">{user.streak}</p>
           <p className="font-bold text-muted-foreground">day streak</p>
         </div>
-        <div className="ml-auto flex items-center gap-2 font-extrabold text-amber-600 dark:text-amber-400">
+        <div className="ml-auto flex shrink-0 items-center gap-2 font-extrabold text-amber-600 dark:text-amber-400">
           <Star className="size-5" /> <span className="tabular-nums">{user.xp.toLocaleString("en-US")}</span> XP
         </div>
       </div>

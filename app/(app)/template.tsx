@@ -10,7 +10,8 @@ export default function AppTemplate({ children }: { children: React.ReactNode })
       default="none"
     >
       {/* jeden element DOM, który tworzy snapshot */}
-      <div className="flex min-h-full w-full flex-1">{children}</div>
+      {/* zawartość wyśrodkowana, a gdy jest wyższa niż ekran – zaczyna się od góry i przewija się w <main> */}
+      <div className="flex min-h-full w-full flex-col items-center justify-center">{children}</div>
     </ViewTransition>
   );
 }

@@ -21,7 +21,7 @@ const SECTIONS = [
 
 export default function PanelPage() {
   return (
-    <div className="flex w-full max-w-3xl flex-col gap-6 px-8 pb-10">
+    <div className="flex w-full max-w-3xl flex-col gap-6 px-4 pb-10 sm:px-8">
       <header className="flex flex-col gap-1">
         <h1 className="text-3xl font-extrabold text-foreground">Admin panel</h1>
         <p className="font-medium text-muted-foreground">Choose what you want to manage.</p>

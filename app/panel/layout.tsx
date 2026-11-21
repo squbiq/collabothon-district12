@@ -16,7 +16,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <ViewTransition name="panel-nav" enter={{ "to-panel": "panel-nav-in", default: "none" }} exit={{ "to-app": "panel-nav-out", default: "none" }} default="none">
         <PanelNav />
       </ViewTransition>
-      <Suspense fallback={<p className="px-8 text-muted-foreground">Loading…</p>}>
+      <Suspense fallback={<p className="px-4 text-muted-foreground sm:px-8">Loading…</p>}>
         <AdminGuard>{children}</AdminGuard>
       </Suspense>
     </section>

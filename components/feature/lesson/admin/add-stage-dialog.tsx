@@ -36,13 +36,13 @@ export function AddStageDialog({ lesson, onClose }: Props) {
 
   return (
     <Dialog open={lesson !== null} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Add stage</DialogTitle>
           <DialogDescription>Choose the type of the new stage in “{lesson?.title}”.</DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap gap-2">
           {STEP_TYPES.map((type) => (
             <ChunkyButton
               key={type}
@@ -50,7 +50,7 @@ export function AddStageDialog({ lesson, onClose }: Props) {
               tone="outline-primary"
               disabled={pending}
               onClick={() => add(type)}
-              className="h-auto justify-start gap-3 py-3 text-left whitespace-normal normal-case"
+              className="h-auto min-w-56 flex-1 basis-56 justify-start gap-3 py-3 text-left whitespace-normal normal-case"
             >
               {STAGE_ICONS[type]}
               <span className="flex flex-col">

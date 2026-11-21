@@ -61,7 +61,7 @@ export default function Profile() {
 
   if (isPending) {
     return (
-      <div className="h-dvh w-full overflow-y-auto">
+      <div className="w-full">
         <section className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-6">
           <Skeleton className="h-32 w-full" />
           <Skeleton className="h-64 w-full" />
@@ -72,7 +72,7 @@ export default function Profile() {
 
   if (!user) {
     return (
-      <div className="h-dvh w-full overflow-y-auto">
+      <div className="w-full">
         <p className="p-6 text-center">Musisz być zalogowany, aby zobaczyć profil.</p>
       </div>
     );
@@ -122,7 +122,7 @@ export default function Profile() {
   };
 
   return (
-    <div className="h-dvh w-full overflow-y-auto">
+    <div className="w-full">
       <section className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-6">
         {/* Statystyki */}
         <div className="grid gap-4 sm:grid-cols-2">

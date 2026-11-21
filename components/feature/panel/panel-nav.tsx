@@ -16,7 +16,7 @@ export function PanelNav() {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Admin panel" className="flex w-full flex-wrap items-center gap-1 border-b px-8 pb-3">
+    <nav aria-label="Admin panel" className="flex w-full flex-wrap items-center gap-1 border-b px-4 pb-3 sm:px-8">
       <Link
         href="/"
         transitionTypes={["to-app"]}

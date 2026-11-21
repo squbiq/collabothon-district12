@@ -29,7 +29,7 @@ async function EditContent({ params }: { params: Promise<{ id: string }> }) {
 
 export default function EditDailyTaskPage({ params }: { params: Promise<{ id: string }> }) {
   return (
-    <div className="flex w-full max-w-2xl min-w-0 flex-col gap-6 px-8 pb-10">
+    <div className="flex w-full max-w-2xl min-w-0 flex-col gap-6 px-4 pb-10 sm:px-8">
       <Suspense fallback={<p className="text-muted-foreground">Loading…</p>}>
         <EditContent params={params} />
       </Suspense>

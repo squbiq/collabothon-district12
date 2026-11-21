@@ -12,7 +12,7 @@ async function HomeContent() {
 
 export default function Home() {
   return (
-    <div className="flex h-full w-full overflow-y-auto">
+    <div className="flex w-full">
       <Suspense fallback={<p className="m-auto font-bold text-muted-foreground">Loading…</p>}>
         <HomeContent />
       </Suspense>

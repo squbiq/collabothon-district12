@@ -48,36 +48,67 @@ export function budgetStress(cfg: BudgetConfig, shares: BudgetShares): number {
 
 export const BUDGET_STRESS_LIMIT = 40;
 
-/**
- * Zmiana jednego suwaka: pozostałe odejmują (lub oddają) różnicę proporcjonalnie do swoich wartości,
- * więc suma zawsze wynosi 100%.
- */
-export function rebalance(shares: BudgetShares, key: BudgetKey, value: number): BudgetShares {
-  const target = Math.max(0, Math.min(100, Math.round(value)));
-  const others = BUDGET_KEYS.filter((k) => k !== key);
-  const pool = 100 - target;
-  const othersTotal = others.reduce((sum, k) => sum + shares[k], 0);
-
-  const next = { ...shares, [key]: target };
-  if (othersTotal === 0) {
-    // wszystkie pozostałe są na zerze – dzielimy równo
-    others.forEach((k, i) => (next[k] = Math.floor(pool / others.length) + (i < pool % others.length ? 1 : 0)));
-    return next;
-  }
-
-  // metoda największych reszt – zachowuje sumę równą dokładnie `pool`
-  const raw = others.map((k) => ({ k, exact: (shares[k] / othersTotal) * pool }));
+/** Rozdziela `total` punktów proporcjonalnie do aktualnych wartości `keys` (metoda największych reszt, suma = total). */
+function distributeProportionally(shares: BudgetShares, keys: BudgetKey[], total: number, next: BudgetShares) {
+  const base = keys.reduce((sum, k) => sum + shares[k], 0);
+  if (base === 0) return distributeEqually(keys, total, next);
+  const raw = keys.map((k) => ({ k, exact: (shares[k] / base) * total }));
   raw.forEach(({ k, exact }) => (next[k] = Math.floor(exact)));
-  let left = pool - raw.reduce((sum, { exact }) => sum + Math.floor(exact), 0);
+  let left = total - raw.reduce((sum, { exact }) => sum + Math.floor(exact), 0);
   raw
     .slice()
-    .sort((a, b) => b.exact - Math.floor(b.exact) - (a.exact - Math.floor(a.exact)))
+    .sort((x, y) => y.exact - Math.floor(y.exact) - (x.exact - Math.floor(x.exact)))
     .forEach(({ k }) => {
       if (left > 0) {
         next[k] += 1;
         left -= 1;
       }
     });
+}
+
+/** Rozdziela `total` punktów po równo między `keys` (reszta po 1 pkt od początku). */
+function distributeEqually(keys: BudgetKey[], total: number, next: BudgetShares) {
+  keys.forEach((k, i) => (next[k] = Math.floor(total / keys.length) + (i < total % keys.length ? 1 : 0)));
+}
+
+/**
+ * Zmiana jednego suwaka przy stałej sumie 100%:
+ *  - zmniejszenie dowolnego suwaka poza Savings → zwolnione punkty trafiają do Savings,
+ *  - zmniejszenie Savings → zwolnione punkty rozkładają się po równo na pozostałe suwaki,
+ *  - zwiększenie suwaka poza Savings → najpierw zabiera z Savings, a gdy się skończą – z pozostałych proporcjonalnie,
+ *  - zwiększenie Savings → zabiera z pozostałych proporcjonalnie.
+ */
+export function rebalance(shares: BudgetShares, key: BudgetKey, value: number): BudgetShares {
+  const target = Math.max(0, Math.min(100, Math.round(value)));
+  const delta = target - shares[key];
+  const next = { ...shares, [key]: target };
+  if (delta === 0) return next;
+
+  const others = BUDGET_KEYS.filter((k) => k !== key);
+
+  if (key === "savings") {
+    if (delta < 0) {
+      // zwolnione punkty dokładamy po równo do pozostałych suwaków
+      const bonus = { ...shares };
+      distributeEqually(others, -delta, bonus);
+      others.forEach((k) => (next[k] = shares[k] + bonus[k]));
+    } else distributeProportionally(shares, others, 100 - target, next);
+    return next;
+  }
+
+  if (delta < 0) {
+    next.savings = shares.savings - delta; // zwolnione punkty idą do oszczędności
+    return next;
+  }
+
+  const fromSavings = Math.min(shares.savings, delta);
+  next.savings = shares.savings - fromSavings;
+  const rest = delta - fromSavings;
+  if (rest > 0) {
+    const donors = others.filter((k) => k !== "savings");
+    const donorsTotal = donors.reduce((sum, k) => sum + shares[k], 0);
+    distributeProportionally(shares, donors, donorsTotal - rest, next);
+  }
   return next;
 }
 
