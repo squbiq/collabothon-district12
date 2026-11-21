@@ -11,8 +11,6 @@ import {
   type StepInput,
 } from "@/types/lesson-input";
 import { ChapterOption, LessonSummary, LessonDetails } from "@/types/lesson-input";
-import { toLessonBase } from "./mappers";
-import { int } from "zod";
 
 type StepCreate = {
   order: number;

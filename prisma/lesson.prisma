@@ -65,6 +65,8 @@ model Lesson {
 // (MySQL nie obsługuje list enumów, więc osobna tabela)
 model LessonPersona {
   lessonId String
+  // Ile przeszedł kroków ?
+  // Czy zakończył czy nie 
   persona  PersonaType
   lesson   Lesson      @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 

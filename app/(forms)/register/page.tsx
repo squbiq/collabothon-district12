@@ -24,22 +24,11 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
- 
-const registerSchema = z.object({
-  username: z
-    .string()
-    .min(6, "Username must be at least 6 characters.")
-    .max(20, "Username can be at most 20 characters.")
-    .regex(
-      /^[a-zA-Z0-9_.]+$/,
-      "Only letters, numbers, periods, and underscores are allowed."
-    ),
-  email: z.string().email("Please enter a valid email address."),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters.")
-    .max(128, "Password can be at most 128 characters."),
-});
+import logo from "@/public/logo-all.svg"
+import Image from "next/image";
+import { Lock, Mail, User } from "lucide-react";
+import { toast } from "@/components/ui/toast";
+import { registerSchema } from "../zod";
  
 type RegisterValues = z.infer<typeof registerSchema>;
  
@@ -61,11 +50,18 @@ export default function RegisterPage() {
     });
  
     if (error) {
-      form.setError("root", {
-        message: error.message ?? "Account creation failed.",
+      toast.add({
+        type: "error",
+        title: "Something went wrong",
+        description: error.message ?? "Account creation failed.",
       });
       return;
     }
+
+    toast.add({
+      type: "success",
+      title: "Account successfully created"
+    });
  
     router.push("/");
     router.refresh();
@@ -74,15 +70,18 @@ export default function RegisterPage() {
   const rootError = form.formState.errors.root;
  
   return (
-    <div className="flex flex-1 items-center justify-center p-6">
+    <div className="w-auto h-auto flex flex-col items-center justify-center p-6">
+      <section className="h-26 pb-6">
+        <Image src={logo} alt="page-logo" className="h-full" />
+      </section>
       <Card className="w-full sm:max-w-md">
-        <CardHeader>
-          <CardTitle>Create account</CardTitle>
-          <CardDescription>
+        <CardHeader className="flex flex-col gap-2 justify-center items-center py-2">
+          <CardTitle className="text-2xl">Create account</CardTitle>
+          <CardDescription className="text-center">
             Enter your username, email, and password to get started.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="py-4">
           <form id="form-register" onSubmit={form.handleSubmit(onSubmit)}>
             <FieldGroup>
               <Controller
@@ -90,9 +89,7 @@ export default function RegisterPage() {
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="form-register-username">
-                      Username
-                    </FieldLabel>
+                    <FieldLabel htmlFor="form-register-username"><User />Username</FieldLabel>
                     <Input
                       {...field}
                       id="form-register-username"
@@ -113,7 +110,7 @@ export default function RegisterPage() {
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="form-register-email">E-mail</FieldLabel>
+                    <FieldLabel htmlFor="form-register-email"><Mail />E-mail</FieldLabel>
                     <Input
                       {...field}
                       id="form-register-email"
@@ -132,9 +129,7 @@ export default function RegisterPage() {
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="form-register-password">
-                      Password
-                    </FieldLabel>
+                    <FieldLabel htmlFor="form-register-password"><Lock />Password</FieldLabel>
                     <Input
                       {...field}
                       id="form-register-password"

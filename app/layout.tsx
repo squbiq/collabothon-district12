@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
-import { ThemeProvider } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
 import "@/style/globals.css";
+import { Providers } from "./providers";
 
 const inter = Inter({ subsets:['latin'],variable:'--font-sans' });
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -21,15 +21,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" suppressHydrationWarning
       className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
     >
-      <body className="min-h-full w-dvw h-dvh p-0 m-0 flex flex-col">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-          >
+      <body className="w-full! h-full! m-0 p-0 box-border">
+        <Providers>
           {children}
-        </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

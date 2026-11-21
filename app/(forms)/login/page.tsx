@@ -23,11 +23,10 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
-
-const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address."),
-  password: z.string().min(8, "Please enter your password."),
-});
+import Image from "next/image";
+import logo from "@/public/logo-all.svg"
+import { Lock, Mail } from "lucide-react";
+import { loginSchema } from "../zod";
 
 type LoginValues = z.infer<typeof loginSchema>;
 
@@ -60,15 +59,18 @@ export default function LoginPage() {
   const rootError = form.formState.errors.root;
 
   return (
-    <div className="flex flex-1 items-center justify-center p-6">
+    <div className="w-auto h-auto flex flex-col items-center justify-center p-6">
+      <section className="h-26 pb-6">
+        <Image src={logo} alt="page-logo" className="h-full" />
+      </section>
       <Card className="w-full sm:max-w-md">
-        <CardHeader>
-          <CardTitle>Login</CardTitle>
-          <CardDescription>
-            Enter your email and password to continue.
+        <CardHeader className="flex flex-col gap-2 justify-center items-center py-2">
+          <CardTitle className="text-2xl">Create account</CardTitle>
+          <CardDescription className="text-center">
+            Enter your username, email, and password to get started.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="py-4">
           <form id="form-login" onSubmit={form.handleSubmit(onSubmit)}>
             <FieldGroup>
               <Controller
@@ -76,9 +78,7 @@ export default function LoginPage() {
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="form-login-email">
-                      Email
-                    </FieldLabel>
+                    <FieldLabel htmlFor="form-login-email"><Mail />E-mail</FieldLabel>
                     <Input
                       {...field}
                       id="form-login-email"
@@ -96,7 +96,7 @@ export default function LoginPage() {
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="form-login-password">Password</FieldLabel>
+                    <FieldLabel htmlFor="form-login-password"><Lock />Password</FieldLabel>
                     <Input
                       {...field}
                       id="form-login-password"
@@ -124,7 +124,7 @@ export default function LoginPage() {
             {form.formState.isSubmitting ? "Logging in..." : "Login"}
           </Button>
           <p className="text-sm text-muted-foreground">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link
               href="/register"
               className="font-medium text-foreground underline-offset-4 hover:underline"

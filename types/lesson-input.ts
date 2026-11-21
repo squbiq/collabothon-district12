@@ -48,3 +48,9 @@ export type LessonSummary = {
 export type LessonDetails = CreateLessonInput & {
   id: string;
 };
+
+// Dane samej lekcji (bez kroków) – używane w panelu admina do tworzenia i edycji.
+export type LessonDataInput = Omit<CreateLessonInput, "steps">;
+
+// Krok razem z identyfikatorem (edycja pojedynczego stage'a).
+export type StageDetails = StepInput & { id: string };

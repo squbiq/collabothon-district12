@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getLesson } from "@/lib/lesson/lesson";
-import { LessonPlayer } from "@/components/lesson-player";
+import { LessonPlayer } from "@/components/feature/lesson/player/lesson-player";
 
 async function LessonContent({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -16,13 +16,11 @@ async function LessonContent({ params }: { params: Promise<{ id: string }> }) {
 
 export default function LessonPage({ params }: { params: Promise<{ id: string }> }) {
   return (
-    <Suspense
-      fallback={
-        <p className="w-full py-20 text-center font-bold text-slate-500">
-          Ładowanie lekcji…
-        </p>
-      }
-    >
+    <Suspense fallback={
+      <p className="w-full py-20 text-center font-bold text-muted-foreground">
+        Loading lesson…
+      </p>
+    }>
       <LessonContent params={params} />
     </Suspense>
   );

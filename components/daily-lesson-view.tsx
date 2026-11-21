@@ -122,7 +122,7 @@ export function DailyLessonView() {
               <ChevronLeft className="h-4 w-4" />
             </Button>
 
-            <span className="px-2 text-sm font-medium min-w-[130px] text-center">
+            <span className="px-2 text-sm font-medium min-w-32.5 text-center">
               {isToday ? 'Today' : formatDisplayDate(selectedDate)}
             </span>
 

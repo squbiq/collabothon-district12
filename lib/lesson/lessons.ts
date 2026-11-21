@@ -8,7 +8,7 @@ import { toLessonBase } from "./mappers";
 // Status liczymy tak: ukończone (z UserLessonProgress) -> "completed",
 // pierwsza nieukończona -> "active", reszta -> "locked".
 // Bez userId nic nie jest ukończone, więc aktywna jest pierwsza lekcja.
-export async function getLessons(userId?: string): Promise<LessonMapItem[]> {
+export async function getLessons(userId?: string | null): Promise<LessonMapItem[]> {
   const rows = await prisma.lesson.findMany({
     orderBy: { order: "asc" },
     include: {
@@ -20,10 +20,16 @@ export async function getLessons(userId?: string): Promise<LessonMapItem[]> {
     },
   });
 
+  // Lekcje bez pozycji (order = null) trafiają na koniec listy,
+  // żeby nie przejmowały statusu "active" przed właściwą pierwszą lekcją.
+  const sorted = [...rows].sort(
+    (a, b) => (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER)
+  );
+
   let activeAssigned = false;
 
-  return rows.map((row) => {
-    const completed = row.progress.some((p) => p.status === "completed");
+  return sorted.map((row) => {
+    const completed = (row.progress ?? []).some((p) => p.status === "completed");
     let status: LessonStatus;
 
     if (completed) {
@@ -35,6 +41,11 @@ export async function getLessons(userId?: string): Promise<LessonMapItem[]> {
       status = "locked";
     }
 
-    return { ...toLessonBase(row), chapterTitle: row.chapter.chapterTitle , status, stepsCount: row._count.steps };
+    return {
+      ...toLessonBase(row),
+      chapterTitle: row.chapter?.chapterTitle ?? "",
+      status,
+      stepsCount: row._count?.steps ?? 0,
+    };
   });
 }
