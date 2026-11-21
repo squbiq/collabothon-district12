@@ -73,7 +73,7 @@ export default function Profile() {
   if (!user) {
     return (
       <div className="w-full">
-        <p className="p-6 text-center">Musisz być zalogowany, aby zobaczyć profil.</p>
+        <p className="p-6 text-center">You have to be logged in to see your profile.</p>
       </div>
     );
   }
@@ -93,7 +93,7 @@ export default function Profile() {
         const { error } = await authClient.updateUser({ username: username.trim() });
         if (error) {
           toast.add({ type: "error",
-            title: error.message ?? "Nie udało się zmienić nazwy użytkownika"
+            title: error.message ?? "Username could not be changed."
           });
           return;
         }
@@ -103,14 +103,14 @@ export default function Profile() {
         const { error } = await authClient.changeEmail({ newEmail: email.trim() });
         if (error) {
           toast.add({ type: "error",
-            title: error.message ?? "Nie udało się zmienić adresu e-mail"
+            title: error.message ?? "E-mail could not be changed."
           });
           return;
         }
       }
 
       toast.add({ type: "success",
-        title: "Profil został zaktualizowany"
+        title: "Profile has been updated"
       });
       await refetch();
       // po zapisie znów pokazujemy dane z sesji
@@ -126,15 +126,15 @@ export default function Profile() {
       <section className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-6">
         {/* Statystyki */}
         <div className="grid gap-4 sm:grid-cols-2">
-          <StatCard icon={<Star className="size-6" />} label="Doświadczenie" value={`${user.experience ?? 0} XP`} />
-          <StatCard icon={<Flame className="size-6" />} label="Seria" value={`${user.streak ?? 0} dni`} />
+          <StatCard icon={<Star className="size-6" />} label="Experience" value={`${user.experience ?? 0} XP`} />
+          <StatCard icon={<Flame className="size-6" />} label="Streak" value={`${user.streak ?? 0} dni`} />
         </div>
 
         {/* Edycja danych */}
         <Card className="border-2">
           <CardHeader>
             <div className="flex items-center justify-between gap-4">
-              <CardTitle className="text-2xl">Twój profil</CardTitle>
+              <CardTitle className="text-2xl">Your profile</CardTitle>
               {isAdmin && (
                 <Badge className="gap-1.5 px-3 py-1 text-sm">
                   <ShieldCheck className="size-4" /> Admin
@@ -147,7 +147,7 @@ export default function Profile() {
             <form onSubmit={onSave} className="flex flex-col gap-5">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="username" className="flex items-center gap-2">
-                  <UserIcon className="size-4" /> Nazwa użytkownika
+                  <UserIcon className="size-4" /> Username
                 </Label>
                 <Input
                   id="username"
@@ -181,7 +181,7 @@ export default function Profile() {
                 disabled={!hasChanges || saving}
                 className="h-14 justify-center gap-4"
               >
-                <Save className="size-5" /> {saving ? "Zapisywanie..." : "Zapisz zmiany"}
+                <Save className="size-5" /> {saving ? "Saving..." : "Save changes."}
               </ChunkyButton>
             </form>
 
@@ -189,8 +189,8 @@ export default function Profile() {
 
             {/* Dane tylko do odczytu */}
             <div className="flex flex-col gap-3">
-              <ReadOnlyRow icon={<CalendarDays className="size-4" />} label="Konto utworzone" value={formatDate(user.createdAt)} />
-              <ReadOnlyRow icon={<RefreshCw className="size-4" />} label="Ostatnia aktualizacja" value={formatDate(user.updatedAt)} />
+              <ReadOnlyRow icon={<CalendarDays className="size-4" />} label="Account created" value={formatDate(user.createdAt)} />
+              <ReadOnlyRow icon={<RefreshCw className="size-4" />} label="Last update" value={formatDate(user.updatedAt)} />
             </div>
           </CardContent>
         </Card>
