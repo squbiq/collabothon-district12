@@ -4,11 +4,24 @@
 import { Suspense } from "react";
 import { getTopics } from "@/lib/lesson/topics";
 import { getChapterOptions } from "@/lib/lesson/admin-queries";
+import { ChapterCreateForm } from "@/components/feature/lesson/admin/chapter-create-form";
 import { LessonDataForm } from "@/components/feature/lesson/admin/lesson-data-form";
+import { connection } from "next/server";
 
 async function CreateLessonContent() {
+  await connection();
   const [topics, chapters] = await Promise.all([getTopics(), getChapterOptions()]);
-  return <LessonDataForm topics={topics} chapters={chapters} />;
+  return (
+    // Formularz lekcji po lewej, nowy rozdział obok (na wąskim ekranie pod spodem)
+    <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+      <div className="min-w-0 flex-1">
+        <LessonDataForm topics={topics} chapters={chapters} />
+      </div>
+      <aside className="w-full lg:sticky lg:top-6 lg:w-72 lg:shrink-0">
+        <ChapterCreateForm topics={topics} />
+      </aside>
+    </div>
+  );
 }
 
 export default function LessonCreatePage() {

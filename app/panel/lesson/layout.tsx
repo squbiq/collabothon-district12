@@ -25,7 +25,7 @@ export default function LessonAdminLayout({ children }: { children: React.ReactN
         </Suspense>
       </aside>
 
-      <div className="min-w-0 max-w-2xl flex-1">{children}</div>
+      <div className="min-w-0 max-w-5xl flex-1">{children}</div>
     </div>
   );
 }

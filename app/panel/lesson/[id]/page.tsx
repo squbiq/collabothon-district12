@@ -16,7 +16,7 @@ async function EditLessonContent({ params }: { params: Promise<{ id: string }> }
   if (!lesson) notFound();
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex max-w-2xl flex-col gap-6">
       <header className="flex flex-col gap-1">
         <h1 className="text-3xl font-extrabold text-foreground">Edit lesson</h1>
         <p className="font-medium text-muted-foreground">{lesson.title}</p>
