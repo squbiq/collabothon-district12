@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { ChunkyButton, chunkyButtonVariants } from "@/components/shared/chunky-button";
 import { ChubbyTooltip } from "@/components/shared/chubby-tooltip";
-import { Suspense, useState } from "react";
+import { Suspense, ViewTransition, useState } from "react";
 import { type User, useUser } from "@/components/context/user-context";
 import { VariantProps } from "class-variance-authority";
 import { authClient } from "@/lib/auth-client";
@@ -49,6 +49,8 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
 
   return (
     <section className="w-dvw h-dvh flex flex-row">
+      {/* Nawigacja nie animuje się przy zmianie strony (default="none"); chowa się w lewo tylko przy wejściu do /panel. */}
+      <ViewTransition name="app-nav" enter={{ "to-app": "app-nav-in", default: "none" }} exit={{ "to-panel": "app-nav-out", default: "none" }} default="none">
       <nav
         aria-label="Main"
         className={cn(
@@ -82,6 +84,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
           <AppNavFooter user={user} collapsed={collapsed} />
         </section>
       </nav>
+      </ViewTransition>
 
       <main className="relative! w-full min-h-dvh flex box-border overflow-x-hidden!">
         {children}
@@ -106,7 +109,7 @@ function NavLinks({ selected, collapsed }: { selected: string; collapsed: boolea
 function NavItem({ href, label, icon: Icon, collapsed, tone }: { href: string; label: string; icon: LucideIcon; collapsed: boolean; tone: Tone }) {
   return (
     <ChubbyTooltip label={label} disabled={!collapsed}>
-      <Link href={href} aria-label={collapsed ? label : undefined} className={itemStyle(tone)}>
+      <Link href={href} transitionTypes={href === "/panel" ? ["to-panel"] : undefined} aria-label={collapsed ? label : undefined} className={itemStyle(tone)}>
         <ItemContent icon={Icon} label={label} collapsed={collapsed} />
       </Link>
     </ChubbyTooltip>

@@ -26,7 +26,7 @@ function buildWeek(streak: number, lastStreakUpdate: Date, now: Date): WeekDay[]
 }
 
 export async function getHomeData(userId?: string) {
-  const now = currentTime();
+  const now = await currentTime();
   const [mission, lessons, user] = await Promise.all([
     getTodayMission(userId),
     getLessons(userId),

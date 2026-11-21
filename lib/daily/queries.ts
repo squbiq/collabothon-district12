@@ -4,7 +4,7 @@
 // publicznym endpointem. Zadanie dnia jest wspólne dla wszystkich użytkowników.
 import "server-only";
 import { prisma } from "@/lib/prisma";
-import { todayKey } from "@/lib/clock";
+import { currentTime, todayKey, utcDateKey } from "@/lib/clock";
 import { getEffectiveStreak } from "@/components/streak/streak";
 
 export interface DailyLessonDTO {
@@ -38,7 +38,8 @@ async function ensureTodaysLesson(today: string) {
 
 /** Dane strony zadania dziennego. Wywołuj po odczycie sesji (dane żądania) – zegar jest wtedy dozwolony. */
 export async function getDailyLessonsData(userId?: string) {
-  const today = todayKey();
+  const now = await currentTime();
+  const today = utcDateKey(now);
   await ensureTodaysLesson(today);
 
   const lessons = await prisma.dailyLesson.findMany({
@@ -72,12 +73,12 @@ export async function getDailyLessonsData(userId?: string) {
     answersByDate[key] = item.selectedOptionId;
   }
 
-  return { ...empty, completedDates, answersByDate, streak: user ? getEffectiveStreak(user) : 0 };
+  return { ...empty, completedDates, answersByDate, streak: user ? getEffectiveStreak(user, now) : 0 };
 }
 
 /** Dzisiejsza misja dla strony głównej: krótkie dane i informacja, czy użytkownik już ją zrobił. */
 export async function getTodayMission(userId?: string) {
-  const today = todayKey();
+  const today = await todayKey();
   await ensureTodaysLesson(today);
 
   const lesson = await prisma.dailyLesson.findUnique({

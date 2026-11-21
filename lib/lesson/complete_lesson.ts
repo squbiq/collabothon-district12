@@ -19,7 +19,7 @@ export async function completeLesson(
   const userId = session.user.id;
 
   return prisma.$transaction(async (tx) => {
-    const now = currentTime();
+    const now = await currentTime();
 
     const lesson = await tx.lesson.findUnique({
       where: { id: lessonId },

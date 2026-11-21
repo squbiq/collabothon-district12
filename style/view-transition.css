@@ -1,0 +1,111 @@
+/*
+ * View transitions (React <ViewTransition> + Next.js `experimental.viewTransition`).
+ *
+ * Zasady:
+ *  - nawigacja stoi w miejscu (ViewTransition z default="none"), animuje się tylko zawartość,
+ *  - zawartość: lekki blur + przesunięcie o 6 px w osi Y,
+ *  - przejście / <-> /panel: najpierw nawigacja (wysuwa się w lewo / w górę), potem zawartość (opóźniona).
+ *
+ * Klasy ustawiają komponenty: app/(app)/layout.tsx, app/(app)/template.tsx, app/panel/layout.tsx, app/panel/template.tsx.
+ */
+
+:root {
+  --vt-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --vt-ease-in: cubic-bezier(0.55, 0, 1, 0.45);
+  --vt-content-duration: 220ms;
+  --vt-nav-duration: 260ms;
+  /* tyle czekamy z wejściem zawartości, gdy najpierw ma się pojawić nawigacja */
+  --vt-content-delay: 200ms;
+}
+
+/* Tło strony nie jest animowane – inaczej cała strona „mrugałaby” przy każdej nawigacji. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+/* ---------- Zawartość ---------- */
+@keyframes vt-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+    filter: blur(4px);
+  }
+}
+@keyframes vt-content-out {
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+    filter: blur(4px);
+  }
+}
+
+::view-transition-old(.content-out) {
+  animation: vt-content-out 150ms var(--vt-ease-in) both;
+}
+::view-transition-new(.content-in) {
+  animation: vt-content-in var(--vt-content-duration) var(--vt-ease-out) both;
+}
+/* Wejście po nawigacji (przejście między / a /panel). */
+::view-transition-new(.content-in-late) {
+  animation: vt-content-in var(--vt-content-duration) var(--vt-ease-out) var(--vt-content-delay) both;
+}
+/* Grupa nie ma się przesuwać ani skalować – animują się tylko snapshoty. */
+::view-transition-group(.content-out),
+::view-transition-group(.content-in),
+::view-transition-group(.content-in-late) {
+  animation: none;
+}
+
+/* ---------- Nawigacja główna: chowa się za lewą krawędź ---------- */
+@keyframes vt-slide-out-left {
+  to {
+    transform: translateX(-100%);
+  }
+}
+@keyframes vt-slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+}
+
+::view-transition-old(.app-nav-out) {
+  animation: vt-slide-out-left var(--vt-nav-duration) var(--vt-ease-in) both;
+}
+::view-transition-new(.app-nav-in) {
+  animation: vt-slide-in-left var(--vt-nav-duration) var(--vt-ease-out) both;
+}
+
+/* ---------- Nawigacja panelu: chowa się do góry ---------- */
+@keyframes vt-slide-out-up {
+  to {
+    transform: translateY(-100%);
+  }
+}
+@keyframes vt-slide-in-up {
+  from {
+    transform: translateY(-100%);
+  }
+}
+
+::view-transition-old(.panel-nav-out) {
+  animation: vt-slide-out-up var(--vt-nav-duration) var(--vt-ease-in) both;
+}
+::view-transition-new(.panel-nav-in) {
+  animation: vt-slide-in-up var(--vt-nav-duration) var(--vt-ease-out) both;
+}
+
+::view-transition-group(.app-nav-out),
+::view-transition-group(.app-nav-in),
+::view-transition-group(.panel-nav-out),
+::view-transition-group(.panel-nav-in) {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

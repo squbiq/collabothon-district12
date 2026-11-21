@@ -19,6 +19,7 @@ export function PanelNav() {
     <nav aria-label="Admin panel" className="flex w-full flex-wrap items-center gap-1 border-b px-8 pb-3">
       <Link
         href="/"
+        transitionTypes={["to-app"]}
         className="mr-2 inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
       >
         <Home className="size-4" /> Home

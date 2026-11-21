@@ -7,7 +7,7 @@
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/session';
-import { currentTime, todayKey } from '@/lib/clock';
+import { currentTime, utcDateKey } from '@/lib/clock';
 import { getEffectiveStreak, registerStreakActivity } from '@/components/streak/streak';
 
 export type CompleteDailyResult =
@@ -20,15 +20,17 @@ export async function completeDaily(dailyLessonId: string, selectedOptionId: str
   const userId = session.user.id;
 
   try {
+    // czas liczymy przed transakcją, żeby nie trzymać połączenia podczas oczekiwania
+    const now = await currentTime();
+    const today = utcDateKey(now);
     const result = await prisma.$transaction(async (tx) => {
-      const now = currentTime();
       const lesson = await tx.dailyLesson.findUnique({
         where: { id: dailyLessonId },
         select: { dateKey: true, rewardExp: true, options: { select: { id: true, isOptimal: true } } },
       });
       if (!lesson) throw new Error('Task not found.');
       // zadania z puli (bez daty) i z przyszłości nie są jeszcze dostępne
-      if (!lesson.dateKey || lesson.dateKey > todayKey()) throw new Error('This task is not available yet.');
+      if (!lesson.dateKey || lesson.dateKey > today) throw new Error('This task is not available yet.');
       const option = lesson.options.find((o) => o.id === selectedOptionId);
       if (!option) throw new Error('Unknown answer.');
 
@@ -46,7 +48,7 @@ export async function completeDaily(dailyLessonId: string, selectedOptionId: str
         if (xpGained > 0) await tx.user.update({ where: { id: userId }, data: { experience: { increment: xpGained } } });
         // streak tylko za dzisiejsze zadanie (archiwum daje XP, ale nie podbija serii)
         streak =
-          lesson.dateKey === todayKey()
+          lesson.dateKey === today
             ? (await registerStreakActivity(tx, userId, now)).streak
             : await currentStreak(tx, userId, now);
       } else {

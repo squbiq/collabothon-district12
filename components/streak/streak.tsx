@@ -1,5 +1,4 @@
 import type { PrismaClient } from "@/gen/prisma/client";
-import { currentTime } from "@/lib/clock";
 
 /**
  * Liczenie streaka oparte o pola User.streak i User.lastStreakUpdate.
@@ -32,7 +31,7 @@ export function utcDayIndex(date: Date): number {
  */
 export function computeStreakAfterActivity(
   state: StreakState,
-  now: Date = currentTime(),
+  now: Date,
 ): { streak: number; changed: boolean } {
   const today = utcDayIndex(now);
   const last = utcDayIndex(state.lastStreakUpdate);
@@ -57,7 +56,7 @@ export function computeStreakAfterActivity(
  */
 export function getEffectiveStreak(
   state: StreakState,
-  now: Date = currentTime(),
+  now: Date,
 ): number {
   if (state.streak === 0) return 0;
   const today = utcDayIndex(now);
@@ -68,7 +67,7 @@ export function getEffectiveStreak(
 /** Czy streak jest już zaliczony na dziś (np. do UI „zrób lekcję, by utrzymać serię”). */
 export function isStreakDoneToday(
   state: StreakState,
-  now: Date = currentTime(),
+  now: Date,
 ): boolean {
   return (
     state.streak > 0 && utcDayIndex(state.lastStreakUpdate) >= utcDayIndex(now)
@@ -87,7 +86,7 @@ type Db = Pick<PrismaClient, "user">;
 export async function registerStreakActivity(
   db: Db,
   userId: string,
-  now: Date = currentTime(),
+  now: Date,
 ): Promise<{ streak: number; changed: boolean }> {
   for (let attempt = 0; attempt < 3; attempt++) {
     const user = await db.user.findUnique({
