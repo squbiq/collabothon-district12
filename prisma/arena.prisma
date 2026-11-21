@@ -1,0 +1,32 @@
+// prisma/arena.prisma
+
+enum DuelStatus {
+  in_progress
+  finished
+}
+
+// Jeden pojedynek z botem. Cały stan trzymamy po stronie serwera.
+model ArenaDuel {
+  id            String     @id @default(cuid())
+  userId        String
+  status        DuelStatus @default(in_progress)
+
+  // Kolejność pytań (id z DailyLesson), wylosowana przy starcie.
+  questionIds   Json
+  // Z góry wylosowane wyniki bota, np. [true, false, true...]. Ujawniane po kolei.
+  botPlan       Json
+  // Odpowiedzi gracza: [{ questionId, optionId, correct }]
+  answers       Json
+  answeredCount Int        @default(0)
+  userScore     Int        @default(0)
+  botScore      Int        @default(0)
+  xpAwarded     Int        @default(0)
+
+  createdAt     DateTime   @default(now())
+  finishedAt    DateTime?
+
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId(length: 191)])
+  @@map("arena_duel")
+}

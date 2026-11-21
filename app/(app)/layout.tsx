@@ -20,7 +20,7 @@ const buttonStyle = (tone: VariantProps<typeof chunkyButtonVariants>["tone"] = "
 const navLinks: Record<string, { title: string, icon: LucideIcon }> = {
   "/daily-lesson": { title: "Daily lesson", icon: CalendarDays },
   "/lesson-map":   { title: "Lessons",      icon: BookOpen },
-  //"/arena":        { title: "Arena",        icon: Swords },
+  "/arena":        { title: "Arena",        icon: Swords },
    "/rankings":      { title: "Rankings",      icon: Trophy },
 };
 

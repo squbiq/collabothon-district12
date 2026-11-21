@@ -21,6 +21,7 @@ model User {
   accounts           Account[]
   userLessonProgress UserLessonProgress[]
   userDailyProgress  UserDailyProgress[]
+  arenaDuels         ArenaDuel[]
 
   @@unique([email])
   @@unique([username])
