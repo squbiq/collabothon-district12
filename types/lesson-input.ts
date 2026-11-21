@@ -11,12 +11,19 @@ export interface DecisionOptionInput {
   feedback: string;
 }
 
+// Jedna para do łączenia: definicja (lewa kolumna) i nazwa (prawa kolumna)
+export interface MatchingPairInput {
+  term: string;
+  definition: string;
+}
+
 // Dane kroku wysyłane z formularza do serwera
 export type StepInput =
   | { type: "story"; title: string; narrative: string }
   | { type: "concept"; title: string; explanation: string; keyTakeaway: string }
   | { type: "decision"; title: string; scenario: string; options: DecisionOptionInput[] }
-  | { type: "summary"; title: string; summary: string; keyTakeaways: string[] };
+  | { type: "summary"; title: string; summary: string; keyTakeaways: string[] }
+  | { type: "matching"; title: string; pairs: MatchingPairInput[] };
 
 export interface CreateLessonInput {
   order: number | null; // null = dodaj na końcu

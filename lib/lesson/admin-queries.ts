@@ -9,6 +9,17 @@ import type { ChapterOption, LessonDataInput, StageDetails } from "@/types/lesso
 export type LessonTreeStage = { id: string; title: string; type: StageDetails["type"] };
 export type LessonTreeItem = { id: string; title: string; stages: LessonTreeStage[] };
 
+// Json z bazy -> pary do formularza (bez filtrowania pustych, żeby admin widział zapisany stan)
+function toPairs(value: unknown): { term: string; definition: string }[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    const p = item as { term?: unknown; definition?: unknown } | null;
+    return p && typeof p.term === "string" && typeof p.definition === "string"
+      ? [{ term: p.term, definition: p.definition }]
+      : [];
+  });
+}
+
 // Wszystkie lekcje z etapami – dane dla BranchedMenu.
 export async function getLessonTree(): Promise<LessonTreeItem[]> {
   await requireAdmin();
@@ -92,6 +103,9 @@ export async function getStageForEdit(
         summary: step.summary ?? "",
         keyTakeaways: Array.isArray(step.keyTakeaways) ? (step.keyTakeaways as string[]) : [],
       };
+      break;
+    case "matching":
+      stage = { ...base, type: "matching", pairs: toPairs(step.pairs) };
       break;
   }
 

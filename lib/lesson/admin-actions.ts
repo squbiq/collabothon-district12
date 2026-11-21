@@ -39,6 +39,7 @@ function stepColumns(step: ParsedStep) {
     scenario: step.scenario,
     summary: step.summary,
     keyTakeaways: step.keyTakeaways ?? Prisma.JsonNull,
+    pairs: step.pairs ?? Prisma.JsonNull,
   };
 }
 

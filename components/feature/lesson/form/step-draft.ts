@@ -10,6 +10,12 @@ export type OptionDraft = {
   feedback: string;
 };
 
+export type PairDraft = {
+  key: number;
+  term: string;
+  definition: string;
+};
+
 export type StepDraft = {
   key: number;
   type: StepType;
@@ -21,6 +27,7 @@ export type StepDraft = {
   summary: string;
   takeaways: string[];
   options: OptionDraft[];
+  pairs: PairDraft[];
 };
 
 export const STEP_LABELS: Record<StepType, string> = {
@@ -28,6 +35,7 @@ export const STEP_LABELS: Record<StepType, string> = {
   concept: "Concept",
   decision: "Decision",
   summary: "Summary",
+  matching: "Matching",
 };
 export const STEP_TYPES = Object.keys(STEP_LABELS) as StepType[];
 
@@ -42,6 +50,12 @@ export const emptyOption = (): OptionDraft => ({
   feedback: "",
 });
 
+export const emptyPair = (): PairDraft => ({
+  key: nextKey(),
+  term: "",
+  definition: "",
+});
+
 export const emptyStep = (type: StepType): StepDraft => ({
   key: nextKey(),
   type,
@@ -53,6 +67,7 @@ export const emptyStep = (type: StepType): StepDraft => ({
   summary: "",
   takeaways: [""],
   options: [emptyOption(), emptyOption()],
+  pairs: [emptyPair(), emptyPair()],
 });
 
 // Szkic formularza -> format wysyłany do API
@@ -83,6 +98,14 @@ export function toStepInput(s: StepDraft): StepInput {
         summary: s.summary,
         keyTakeaways: s.takeaways.filter((t) => t.trim()),
       };
+    case "matching":
+      return {
+        type: "matching",
+        title: s.title,
+        pairs: s.pairs
+          .filter((p) => p.term.trim() || p.definition.trim())
+          .map(({ term, definition }) => ({ term, definition })),
+      };
   }
 }
 
@@ -109,6 +132,12 @@ export function fromStepInput(step: StepInput): StepDraft {
     case "summary":
       base.summary = step.summary;
       base.takeaways = step.keyTakeaways.length > 0 ? [...step.keyTakeaways] : [""];
+      break;
+    case "matching":
+      base.pairs =
+        step.pairs.length > 0
+          ? step.pairs.map((p) => ({ key: nextKey(), term: p.term, definition: p.definition }))
+          : [emptyPair(), emptyPair()];
       break;
   }
 

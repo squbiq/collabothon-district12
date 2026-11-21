@@ -14,10 +14,14 @@ export type ParsedStep = {
   scenario: string | null;
   summary: string | null;
   keyTakeaways: string[] | null;
+  pairs: { term: string; definition: string }[] | null;
   options: { order: number; label: string; isOptimal: boolean; feedback: string }[];
 };
 
 export type ParseResult = { ok: true; step: ParsedStep } | { ok: false; error: string };
+
+const MIN_PAIRS = 2;
+const MAX_PAIRS = 6;
 
 const clean = (v: unknown) => (typeof v === "string" ? v.trim() : "");
 const fail = (error: string): ParseResult => ({ ok: false, error });
@@ -35,6 +39,7 @@ export function parseStep(raw: StepInput): ParseResult {
     scenario: null,
     summary: null,
     keyTakeaways: null,
+    pairs: null,
     options: [],
   };
 
@@ -72,6 +77,23 @@ export function parseStep(raw: StepInput): ParseResult {
         .filter(Boolean);
       if (!summary) return fail("Enter the summary.");
       return { ok: true, step: { ...base, summary, keyTakeaways } };
+    }
+    case "matching": {
+      const pairs = (Array.isArray(raw.pairs) ? raw.pairs : []).map((p) => ({
+        term: clean(p.term),
+        definition: clean(p.definition),
+      }));
+      if (pairs.length < MIN_PAIRS || pairs.some((p) => !p.term || !p.definition)) {
+        return fail(`Add at least ${MIN_PAIRS} pairs, each with a definition and a term.`);
+      }
+      if (pairs.length > MAX_PAIRS) return fail(`Use at most ${MAX_PAIRS} pairs.`);
+
+      const terms = new Set(pairs.map((p) => p.term.toLowerCase()));
+      const definitions = new Set(pairs.map((p) => p.definition.toLowerCase()));
+      if (terms.size !== pairs.length || definitions.size !== pairs.length) {
+        return fail("Each term and each definition must be unique.");
+      }
+      return { ok: true, step: { ...base, pairs } };
     }
     default:
       return fail("Unknown stage type.");

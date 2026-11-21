@@ -32,5 +32,20 @@ export function defaultStage(type: StepInput["type"]): StepInput {
         summary: "Summarize what the learner has seen.",
         keyTakeaways: ["Key takeaway"],
       };
+    case "matching":
+      return {
+        type,
+        title: "Match the terms",
+        pairs: [
+          {
+            term: "Inflation",
+            definition: "A general rise in prices that reduces what your money can buy.",
+          },
+          {
+            term: "Diversification",
+            definition: "Spreading your money across different investments to reduce risk.",
+          },
+        ],
+      };
   }
 }
