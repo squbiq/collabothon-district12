@@ -29,11 +29,25 @@ import {
   addDays,
   formatDisplayDate,
   fromDateKey,
-  getMockDailyLessons,
   toDateKey,
 } from '@/lib/daily/mock-data';
+import { type DailyLessonDTO, submitDailyAnswer } from '@/lib/daily/actions';
 
-export function DailyLessonView() {
+interface DailyLessonViewProps {
+  userId?: string;
+  initialLessons: Record<string, DailyLessonDTO>;
+  initialCompletedDates: string[];
+  initialAnswers: Record<string, string>;
+  initialStreak: number;
+}
+
+export function DailyLessonView({
+  userId,
+  initialLessons,
+  initialCompletedDates,
+  initialAnswers,
+  initialStreak,
+}: DailyLessonViewProps) {
   const today = useMemo(() => {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
@@ -41,19 +55,12 @@ export function DailyLessonView() {
   }, []);
 
   const todayKey = useMemo(() => toDateKey(today), [today]);
-  const lessonsByDate = useMemo(() => getMockDailyLessons(today), [today]);
+  const lessonsByDate = initialLessons;
 
   const [selectedDate, setSelectedDate] = useState<Date>(today);
-  const [streak, setStreak] = useState<number>(2);
-
-  // Pre-marked past days so the calendar looks active during the demo
-  const [completedDates, setCompletedDates] = useState<string[]>(() => [
-    toDateKey(addDays(today, -1)),
-    toDateKey(addDays(today, -2)),
-  ]);
-
-  // Remember selected answers per date
-  const [answersByDate, setAnswersByDate] = useState<Record<string, string>>({});
+  const [streak, setStreak] = useState<number>(initialStreak);
+  const [completedDates, setCompletedDates] = useState<string[]>(initialCompletedDates);
+  const [answersByDate, setAnswersByDate] = useState<Record<string, string>>(initialAnswers);
 
   const selectedKey = toDateKey(selectedDate);
   const isToday = selectedKey === todayKey;
@@ -75,15 +82,24 @@ export function DailyLessonView() {
     [lessonsByDate, completedDates]
   );
 
-  const handleSelectOption = (optionId: string) => {
+  const handleSelectOption = async (optionId: string) => {
     if (!currentLesson) return;
 
+    // Optimistic UI update
     setAnswersByDate((prev) => ({ ...prev, [selectedKey]: optionId }));
 
     if (!completedDates.includes(selectedKey)) {
       setCompletedDates((prev) => [...prev, selectedKey]);
       if (isToday) {
         setStreak((prev) => prev + 1);
+      }
+    }
+
+    if (userId) {
+      try {
+        await submitDailyAnswer(userId, currentLesson.id, selectedKey, optionId);
+      } catch (error) {
+        console.error('Failed to save daily answer:', error);
       }
     }
   };
@@ -174,7 +190,7 @@ export function DailyLessonView() {
                   ) : (
                     <span className="text-xs font-medium text-muted-foreground">
                       {isToday
-                        ? `+€${currentLesson.rewardCoins} + Streak`
+                        ? `+${currentLesson.rewardExp} XP + Streak`
                         : 'Archive mode (no streak change)'}
                     </span>
                   )}
@@ -257,10 +273,10 @@ export function DailyLessonView() {
                 {selectedOption && (
                   <Link href="/arena">
                     <Button>
-                        Apply This in the Arena
-                        <ArrowRight className="ml-2 h-4 w-4" />
+                      Apply This in the Arena
+                      <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
-                </Link>
+                  </Link>
                 )}
               </CardFooter>
             </Card>
