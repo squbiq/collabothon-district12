@@ -4,7 +4,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { isEditableStepType } from "./step-parser";
+import { isEditableStepType, parseStep } from "./step-parser";
 import {
   PERSONAS,
   type CreateLessonInput,
@@ -23,6 +23,7 @@ type StepCreate = {
   scenario?: string;
   summary?: string;
   keyTakeaways?: string[];
+  pairs?: { term: string; definition: string }[];
   options?: {
     create: { order: number; label: string; isOptimal: boolean; feedback: string }[];
   };
@@ -126,6 +127,13 @@ export async function createLesson(
         });
         break;
       }
+      case "matching": {
+        // walidacja jak w panelu admina (liczba i unikalność par)
+        const parsed = parseStep(raw);
+        if (!parsed.ok) return fail(`${label}: ${parsed.error}`);
+        stepsData.push({ order: i + 1, type: "matching", title: stepTitle, pairs: parsed.step.pairs ?? [] });
+        break;
+      }
       default:
         return fail(`${label}: nieznany typ kroku.`);
     }
@@ -148,6 +156,7 @@ export async function createLesson(
         title,
         description,
         estimatedMinutes,
+        experience: input.experience,
         unlockAssetId,
         targetPersonas: { create: targetPersonas.map((persona) => ({ persona })) },
         steps: { create: stepsData },
@@ -213,6 +222,7 @@ export async function getLessonById(lessonId: string): Promise<LessonDetails | n
     title: row.title,
     description: row.description,
     estimatedMinutes: row.estimatedMinutes,
+    experience: row.experience,
     unlockAssetId: row.unlockAssetId,
     targetPersonas: row.targetPersonas.map((p) => p.persona),
     steps: row.steps.filter((step) => isEditableStepType(step.type)).map((step): StepInput => {
@@ -249,6 +259,12 @@ export async function getLessonById(lessonId: string): Promise<LessonDetails | n
             keyTakeaways: Array.isArray(step.keyTakeaways)
               ? (step.keyTakeaways as string[])
               : [],
+          };
+        case "matching":
+          return {
+            type: "matching",
+            title: step.title,
+            pairs: Array.isArray(step.pairs) ? (step.pairs as { term: string; definition: string }[]) : [],
           };
         default:
           // niedostępne – kroki innych typów odfiltrowaliśmy wyżej
@@ -305,6 +321,7 @@ export async function updateLesson(
           title: input.title.trim(),
           description: input.description.trim(),
           estimatedMinutes: input.estimatedMinutes,
+          experience: input.experience,
           unlockAssetId: input.unlockAssetId,
           targetPersonas: {
             create: input.targetPersonas.map((persona) => ({
@@ -347,6 +364,8 @@ export async function updateLesson(
                     summary: step.summary,
                     keyTakeaways: step.keyTakeaways,
                   };
+                case "matching":
+                  return { ...baseStep, pairs: step.pairs.map(({ term, definition }) => ({ term, definition })) };
               }
             }),
           },

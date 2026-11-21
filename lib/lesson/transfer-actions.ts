@@ -22,6 +22,17 @@ type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string };
 const fail = (error: string): { ok: false; error: string } => ({ ok: false, error });
 const MAX_IMPORT_CHARS = 4_500_000;
 
+// Pary z kolumny Json – pomija elementy o złym kształcie.
+function toPairs(value: unknown): { term: string; definition: string }[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    const p = item as { term?: unknown; definition?: unknown } | null;
+    return p && typeof p.term === "string" && typeof p.definition === "string"
+      ? [{ term: p.term, definition: p.definition }]
+      : [];
+  });
+}
+
 async function isAdmin() {
   const session = await getSession();
   return session?.user.role === "admin";
@@ -80,9 +91,9 @@ export async function exportLessons(
               keyTakeaways: Array.isArray(s.keyTakeaways) ? s.keyTakeaways.filter((k): k is string => typeof k === "string") : [],
             });
             break;
-          default:
-            // Lepiej przerwać niż po cichu zgubić dane kroku, którego format nie obsługuje.
-            return fail(`Lesson "${row.title}" has a "${s.type}" stage, which cannot be exported yet.`);
+          case "matching":
+            steps.push({ type: "matching", title: s.title, pairs: toPairs(s.pairs) });
+            break;
         }
       }
 

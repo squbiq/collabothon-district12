@@ -10,6 +10,7 @@ export type LessonDataFields = {
   title: string;
   description: string;
   estimatedMinutes: string;
+  experience: string;
   unlockAssetId: string;
   personas: PersonaType[];
 };
@@ -21,6 +22,7 @@ export const emptyLessonData = (): LessonDataFields => ({
   title: "",
   description: "",
   estimatedMinutes: "",
+  experience: "",
   unlockAssetId: "",
   personas: [],
 });
@@ -32,6 +34,7 @@ export const fromLessonData = (l: LessonDataInput, topicId: string): LessonDataF
   title: l.title,
   description: l.description,
   estimatedMinutes: String(l.estimatedMinutes),
+  experience: String(l.experience),
   unlockAssetId: l.unlockAssetId ?? "",
   personas: l.targetPersonas,
 });
@@ -42,6 +45,7 @@ export const toLessonDataInput = (f: LessonDataFields): LessonDataInput => ({
   title: f.title,
   description: f.description,
   estimatedMinutes: Number(f.estimatedMinutes),
+  experience: Number(f.experience),
   unlockAssetId: f.unlockAssetId.trim() === "" ? null : f.unlockAssetId,
   targetPersonas: f.personas,
 });

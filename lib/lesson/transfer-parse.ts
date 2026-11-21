@@ -7,7 +7,7 @@ import { LESSON_EXPORT_FORMAT, LESSON_EXPORT_VERSION } from "@/types/lesson-tran
 import type { StepInput } from "@/types/lesson-input";
 import { parseStep, type ParsedStep } from "./step-parser";
 
-const STEP_TYPES = ["story", "concept", "decision", "summary"];
+const STEP_TYPES = ["story", "concept", "decision", "summary", "matching"];
 const MAX_VARCHAR = 191; // tyle mieszczą kolumny String w bazie
 
 const optionalId = z.string().trim().min(1).max(MAX_VARCHAR).optional();

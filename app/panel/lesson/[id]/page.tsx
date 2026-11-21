@@ -7,8 +7,10 @@ import { getTopics } from "@/lib/lesson/topics";
 import { getChapterOptions, getLessonForEdit } from "@/lib/lesson/admin-queries";
 import { ExportLessonButton } from "@/components/feature/lesson/admin/lesson-transfer";
 import { LessonDataForm } from "@/components/feature/lesson/admin/lesson-data-form";
+import { connection } from "next/server";
 
 async function EditLessonContent({ params }: { params: Promise<{ id: string }> }) {
+  await connection()
   const { id } = await params;
   const [lesson, topics, chapters] = await Promise.all([getLessonForEdit(id), getTopics(), getChapterOptions()]);
   if (!lesson) notFound();

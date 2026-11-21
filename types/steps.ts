@@ -37,4 +37,16 @@ export interface SummaryStep extends BaseStep {
   keyTakeaways: string[];
 }
 
-export type LessonStep = StoryStep | ConceptStep | DecisionStep | SummaryStep;
+export interface MatchingPair {
+  id: string;
+  term: string;
+  definition: string;
+}
+
+/** Krok 5: łączenie definicji (lewa kolumna) z nazwami (prawa kolumna). */
+export interface MatchingStep extends BaseStep {
+  type: "matching";
+  pairs: MatchingPair[];
+}
+
+export type LessonStep = StoryStep | ConceptStep | DecisionStep | SummaryStep | MatchingStep;

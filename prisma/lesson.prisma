@@ -13,8 +13,7 @@ enum StepType {
   concept
   decision
   summary
-  fill
-  match
+  matching
 }
 
 // Odpowiednik LessonStatus
@@ -78,13 +77,14 @@ model LessonPersona {
   @@id([lessonId, persona])
 }
 
-// Krok lekcji. Jedna tabela na wszystkie 4 typy kroków:
+// Krok lekcji. Jedna tabela na wszystkie 5 typów kroków:
 // wypełnione są tylko pola pasujące do `type`, reszta zostaje NULL.
 //
 //   story    -> narrative
 //   concept  -> explanation, keyTakeaway
 //   decision -> scenario + options (tabela DecisionOption)
 //   summary  -> summary, keyTakeaways
+//   matching -> pairs (Json: [{ term, definition }])
 model LessonStep {
   id       String   @id @default(cuid())
   lessonId String
@@ -98,6 +98,7 @@ model LessonStep {
   scenario     String? @db.Text
   summary      String? @db.Text
   keyTakeaways Json?
+  pairs        Json?
 
   options DecisionOption[]
   lesson  Lesson           @relation(fields: [lessonId], references: [id], onDelete: Cascade)

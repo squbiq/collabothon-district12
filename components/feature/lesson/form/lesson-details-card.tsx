@@ -69,7 +69,7 @@ export function LessonDetailsCard({ fields, topics, chapters, onTopicChange, onC
           />
         </FormField>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-3">
           <FormField label="Estimated time (min)" htmlFor="estimatedMinutes">
             <Input
               id="estimatedMinutes"
@@ -79,6 +79,18 @@ export function LessonDetailsCard({ fields, topics, chapters, onTopicChange, onC
               step={1}
               value={fields.estimatedMinutes}
               onChange={(e) => onChange("estimatedMinutes", e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Experience" hint="Reward" htmlFor="experience">
+            <Input
+              id="experience"
+              required
+              type="number"
+              min={0}
+              step={1}
+              value={fields.experience}
+              onChange={(e) => onChange("experience", e.target.value)}
             />
           </FormField>
 
@@ -93,29 +105,6 @@ export function LessonDetailsCard({ fields, topics, chapters, onTopicChange, onC
             />
           </FormField>
         </div>
-
-        <FormField label="Asset ID to unlock" hint="Optional" htmlFor="unlockAssetId">
-          <Input id="unlockAssetId" value={fields.unlockAssetId} onChange={(e) => onChange("unlockAssetId", e.target.value)} />
-        </FormField>
-
-        <fieldset className="flex flex-col gap-2">
-          <legend className="text-sm font-semibold">Target audience</legend>
-          <div className="flex flex-wrap gap-3">
-            {PERSONAS.map((p) => {
-              const id = `persona-${p}`;
-              return (
-                <Label
-                  key={p}
-                  htmlFor={id}
-                  className="flex cursor-pointer items-center gap-2 rounded-lg border px-3.5 py-2 font-medium transition-colors hover:bg-muted/50"
-                >
-                  <Checkbox id={id} checked={fields.personas.includes(p)} onCheckedChange={() => onTogglePersona(p)} />
-                  {p}
-                </Label>
-              );
-            })}
-          </div>
-        </fieldset>
       </CardContent>
     </Card>
   );

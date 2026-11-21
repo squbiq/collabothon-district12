@@ -32,6 +32,7 @@ async function parseLessonData(input: LessonDataInput) {
   const title = clean(input.title);
   const description = clean(input.description);
   const estimatedMinutes = Number(input.estimatedMinutes);
+  const experience = Number(input.experience);
 
   if (!chapterId || !title || !description) return fail("Fill in the chapter, title and description.");
   if (!Number.isInteger(estimatedMinutes) || estimatedMinutes < 1) {
@@ -51,6 +52,7 @@ async function parseLessonData(input: LessonDataInput) {
       title,
       description,
       estimatedMinutes,
+      experience,
       unlockAssetId: clean(input.unlockAssetId) || null,
       personas: [...new Set((input.targetPersonas ?? []).filter((p) => PERSONAS.includes(p)))],
     },
