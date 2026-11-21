@@ -1,8 +1,9 @@
 // app/(app)/lesson-map/page.tsx
 //
-// Mapa lekcji: wybór ścieżki na górze + lista lekcji (ukończona / aktywna / zablokowana).
+// Mapa lekcji: wybór tematu na górze + lekcje pogrupowane po rozdziałach.
 import { Suspense } from "react";
-import { resolvePath } from "@/lib/lesson/paths";
+import { connection } from "next/server";
+import { getTopics, resolveTopic } from "@/lib/lesson/topics";
 import { PathSwitcher } from "@/components/feature/lesson/map/path-switcher";
 import { LessonList } from "@/components/feature/lesson/map/lesson-list";
 import { CreateLessonLink } from "@/components/feature/lesson/map/create-lesson-link";
@@ -11,12 +12,18 @@ type SearchParams = Promise<{ path?: string }>;
 
 async function PathContent({ searchParams }: { searchParams: SearchParams }) {
   const { path } = await searchParams;
-  const current = resolvePath(path);
+  await connection();
+  const topics = await getTopics();
+  const current = resolveTopic(topics, path);
+
+  if (!current) {
+    return <p className="font-medium text-muted-foreground">No topics yet.</p>;
+  }
 
   return (
     <>
-      <PathSwitcher currentId={current.id} />
-      <LessonList pathId={current.id} />
+      <PathSwitcher topics={topics} currentId={current.id} />
+      <LessonList topicId={current.id} />
     </>
   );
 }

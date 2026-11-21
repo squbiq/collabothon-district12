@@ -7,42 +7,53 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { PERSONAS, type ChapterOption } from "@/types/lesson-input";
 import type { PersonaType } from "@/types/users";
+import type { TopicOption } from "@/lib/lesson/topics";
+import { ChapterField } from "./chapter-field";
 import { FormField } from "./form-field";
 import type { LessonDataFields } from "./lesson-data";
 
 type Props = {
   fields: LessonDataFields;
+  topics: TopicOption[];
   chapters: ChapterOption[];
+  /** Zmiana tematu czyści wybrany rozdział (rozdziały należą do tematu). */
+  onTopicChange: (topicId: string) => void;
   onChange: <K extends keyof LessonDataFields>(key: K, value: LessonDataFields[K]) => void;
   onTogglePersona: (p: PersonaType) => void;
 };
 
-export function LessonDetailsCard({ fields, chapters, onChange, onTogglePersona }: Props) {
+export function LessonDetailsCard({ fields, topics, chapters, onTopicChange, onChange, onTogglePersona }: Props) {
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-xl">Lesson details</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <FormField label="Chapter" htmlFor="chapterId">
+        <FormField label="Topic" htmlFor="topicId">
           <Select
-            // items mapuje id -> tytuł, dzięki czemu trigger pokazuje nazwę rozdziału, a nie id
-            items={chapters.map((c) => ({ value: c.id, label: c.title }))}
-            value={fields.chapterId}
-            onValueChange={(value) => onChange("chapterId", value ?? "")}
+            items={topics.map((t) => ({ value: t.id, label: t.title }))}
+            value={fields.topicId}
+            onValueChange={(v) => onTopicChange(v ?? "")}
           >
-            <SelectTrigger id="chapterId" className="w-full">
-              <SelectValue placeholder="Select a chapter" />
+            <SelectTrigger id="topicId" className="w-full">
+              <SelectValue placeholder="Select a topic" />
             </SelectTrigger>
             <SelectContent>
-              {chapters.map((chapter) => (
-                <SelectItem key={chapter.id} value={chapter.id}>
-                  {chapter.title}
+              {topics.map((topic) => (
+                <SelectItem key={topic.id} value={topic.id}>
+                  {topic.title}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </FormField>
+
+        <ChapterField
+          topicId={fields.topicId}
+          chapters={chapters}
+          value={fields.chapterId}
+          onChange={(id) => onChange("chapterId", id)}
+        />
 
         <FormField label="Title" htmlFor="title">
           <Input id="title" required value={fields.title} onChange={(e) => onChange("title", e.target.value)} />
