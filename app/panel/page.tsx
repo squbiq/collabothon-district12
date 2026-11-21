@@ -2,7 +2,7 @@
 //
 // Wybór sekcji panelu: lekcje albo zadania dzienne.
 import Link from "next/link";
-import { CalendarCheck, GraduationCap } from "lucide-react";
+import { CalendarCheck, GraduationCap, Users } from "lucide-react";
 
 const SECTIONS = [
   {
@@ -16,6 +16,12 @@ const SECTIONS = [
     title: "Daily lessons",
     description: "Pool of daily multiple-choice tasks shared by all users.",
     icon: CalendarCheck,
+  },
+  {
+    href: "/panel/users",
+    title: "Users",
+    description: "Roles, bans and sessions. Export and import users with their progress.",
+    icon: Users,
   },
 ];
 

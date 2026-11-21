@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
+import { toast } from "@/components/ui/toast";
 import Image from "next/image";
 import logo from "@/public/logo-all.svg"
 import { Lock, Mail } from "lucide-react";
@@ -45,7 +46,12 @@ export default function LoginPage() {
     });
 
     if (error) {
-        console.error("Login error:", error);
+      // zbanowane konto: tost z informacją o banie i jego powodem
+      if (error.code === "BANNED_USER") {
+        toast.add({ type: "error", title: "Your account has been banned", description: error.message, timeout: 10000 });
+        return;
+      }
+      console.error("Login error:", error);
       form.setError("root", {
         message: "Invalid email or password.",
       });

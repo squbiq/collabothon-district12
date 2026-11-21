@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarCheck, GraduationCap, Home, LayoutDashboard } from "lucide-react";
+import { CalendarCheck, GraduationCap, Home, LayoutDashboard, Users } from "lucide-react";
 import { cn } from "cn";
 import { Suspense } from "react";
 
@@ -11,6 +11,7 @@ const LINKS = [
   { href: "/panel", label: "Panel", icon: LayoutDashboard, exact: true },
   { href: "/panel/lesson", label: "Lessons", icon: GraduationCap, exact: false },
   { href: "/panel/daily-lesson", label: "Daily lessons", icon: CalendarCheck, exact: false },
+  { href: "/panel/users", label: "Users", icon: Users, exact: false },
 ];
 
 // usePathname() jest danymi z żądania, więc musi być wewnątrz <Suspense> (cacheComponents).
