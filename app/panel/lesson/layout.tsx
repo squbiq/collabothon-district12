@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { Plus } from "lucide-react";
 import { chunkyButtonVariants } from "@/components/shared/chunky-button";
 import { LessonMenuLoader } from "@/components/feature/lesson/admin/lesson-menu-loader";
+import { TopicsEditorLoader } from "@/components/feature/lesson/admin/topics-editor-loader";
 
 export default function LessonAdminLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -14,6 +15,9 @@ export default function LessonAdminLayout({ children }: { children: React.ReactN
         <Link href="/panel/lesson/create" className={chunkyButtonVariants({ tone: "success", size: "lg", fullWidth: true })}>
           <Plus /> Create lesson
         </Link>
+        <Suspense fallback={<p className="text-sm text-muted-foreground">Loading topics…</p>}>
+          <TopicsEditorLoader />
+        </Suspense>
         <Suspense fallback={<p className="text-sm text-muted-foreground">Loading lessons…</p>}>
           <LessonMenuLoader />
         </Suspense>

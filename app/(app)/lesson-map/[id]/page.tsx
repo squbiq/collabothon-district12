@@ -3,9 +3,12 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getLesson } from "@/lib/lesson/lesson";
+import { requireSession } from "@/lib/session";
 import { LessonPlayer } from "@/components/feature/lesson/player/lesson-player";
 
 async function LessonContent({ params }: { params: Promise<{ id: string }> }) {
+  // lekcje tylko dla zalogowanych – gość trafia na stronę logowania
+  await requireSession();
   const { id } = await params;
   const lesson = await getLesson(id);
 

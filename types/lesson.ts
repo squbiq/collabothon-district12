@@ -5,7 +5,6 @@
 
 import type { PersonaType } from "./users";
 import type { LessonStep } from "./steps";
-import type { LessonPathId } from "@/lib/lesson/paths";
 
 /** Status lekcji dla danego użytkownika na mapie lekcji. */
 export type LessonStatus = "locked" | "active" | "completed";
@@ -14,9 +13,11 @@ export type LessonStatus = "locked" | "active" | "completed";
 export interface LessonBase {
   id: string;
   order: number;
-  pathId?: LessonPathId;
+  /** Temat (ścieżka nauki) – wynika z rozdziału: Lesson -> Chapter -> Topic. */
+  topicId: string;
   chapterId: string;
   chapterNumber: number;
+  chapterTitle: string;
   title: string;
   description: string;
   estimatedMinutes: number;

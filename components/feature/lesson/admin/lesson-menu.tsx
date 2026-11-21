@@ -82,7 +82,7 @@ export function LessonMenu({ lessons }: { lessons: LessonTreeItem[] }) {
         <p className="text-sm text-muted-foreground">No lessons yet.</p>
       ) : (
         // Przy wielu lekcjach menu przewija się wewnątrz własnego kontenera.
-        <div className="max-h-[calc(100dvh-12rem)] overflow-y-auto pr-2">
+        <div className="max-h-[calc(100dvh-26rem)] min-h-40 overflow-y-auto pr-2">
           <BranchedMenu
             key={lessons.length}
             items={items}

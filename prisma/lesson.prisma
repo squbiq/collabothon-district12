@@ -22,25 +22,31 @@ enum LessonStatus {
   completed
 }
 
+// Temat = ścieżka nauki (zakładka na mapie lekcji). Temat ma rozdziały, a rozdział lekcje.
 model Topic {
-  id String @id @default(cuid())
-  topicTitle String
+  id          String @id @default(cuid())
+  topicTitle  String
+  orderNumber Int    @default(0) // kolejność zakładek na mapie lekcji
+
+  Chapter     Chapter[]
 }
 
 model Chapter {
-  id           String @id @default(cuid())
+  id           String   @id @default(cuid())
   topicId      String
   orderNumber  Int
   chapterTitle String
 
   Lessons      Lesson[]
+  Topic        Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@index([topicId])
 }
 
 // Lekcja (odpowiednik interfejsu Lesson)
 model Lesson {
   id               String  @id @default(cuid())
   order            Int
-  pathId           String  @default("stock-investor")
   chapterId        String
   title            String
   description      String  @db.Text
