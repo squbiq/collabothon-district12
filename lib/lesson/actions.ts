@@ -3,6 +3,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@/gen/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { isEditableStepType, parseStep } from "./step-parser";
 import {
@@ -24,6 +25,7 @@ type StepCreate = {
   summary?: string;
   keyTakeaways?: string[];
   pairs?: { term: string; definition: string }[];
+  config?: Prisma.InputJsonValue;
   options?: {
     create: { order: number; label: string; isOptimal: boolean; feedback: string }[];
   };
@@ -132,6 +134,15 @@ export async function createLesson(
         const parsed = parseStep(raw);
         if (!parsed.ok) return fail(`${label}: ${parsed.error}`);
         stepsData.push({ order: i + 1, type: "matching", title: stepTitle, pairs: parsed.step.pairs ?? [] });
+        break;
+      }
+      case "growth":
+      case "budget":
+      case "risk":
+      case "estimate": {
+        const parsed = parseStep(raw);
+        if (!parsed.ok) return fail(`${label}: ${parsed.error}`);
+        stepsData.push({ order: i + 1, type: raw.type, title: stepTitle, config: parsed.step.config as Prisma.InputJsonValue });
         break;
       }
       default:
@@ -266,6 +277,11 @@ export async function getLessonById(lessonId: string): Promise<LessonDetails | n
             title: step.title,
             pairs: Array.isArray(step.pairs) ? (step.pairs as { term: string; definition: string }[]) : [],
           };
+        case "growth":
+        case "budget":
+        case "risk":
+        case "estimate":
+          return { type: step.type, title: step.title, config: step.config ?? {} } as StepInput;
         default:
           // niedostępne – kroki innych typów odfiltrowaliśmy wyżej
           throw new Error(`Unsupported step type: ${step.type}`);
@@ -366,6 +382,11 @@ export async function updateLesson(
                   };
                 case "matching":
                   return { ...baseStep, pairs: step.pairs.map(({ term, definition }) => ({ term, definition })) };
+                case "growth":
+                case "budget":
+                case "risk":
+                case "estimate":
+                  return { ...baseStep, config: step.config as unknown as Prisma.InputJsonValue };
               }
             }),
           },

@@ -5,9 +5,9 @@
 import { z } from "zod";
 import { LESSON_EXPORT_FORMAT, LESSON_EXPORT_VERSION } from "@/types/lesson-transfer";
 import type { StepInput } from "@/types/lesson-input";
-import { parseStep, type ParsedStep } from "./step-parser";
+import { EDITABLE_STEP_TYPES, parseStep, type ParsedStep } from "./step-parser";
 
-const STEP_TYPES = ["story", "concept", "decision", "summary", "matching"];
+const STEP_TYPES: readonly string[] = EDITABLE_STEP_TYPES;
 const MAX_VARCHAR = 191; // tyle mieszczą kolumny String w bazie
 
 const optionalId = z.string().trim().min(1).max(MAX_VARCHAR).optional();

@@ -23,6 +23,7 @@ import {
 import { ConceptFields } from "@/components/feature/lesson/form/step-fields/concept-fields";
 import { DecisionFields } from "@/components/feature/lesson/form/step-fields/decision-fields";
 import { MatchingFields } from "@/components/feature/lesson/form/step-fields/matching-fields";
+import { BudgetFields, EstimateFields, GrowthFields, RiskFields } from "@/components/feature/lesson/form/step-fields/interactive-fields";
 import { StoryFields } from "@/components/feature/lesson/form/step-fields/story-fields";
 import { SummaryFields } from "@/components/feature/lesson/form/step-fields/summary-fields";
 import { ConfirmDeleteDialog } from "./confirm-dialog";
@@ -90,6 +91,10 @@ export function StageForm({ lessonId, stage }: Props) {
       {draft.type === "decision" && <DecisionFields step={draft} onChange={patch} />}
       {draft.type === "summary" && <SummaryFields step={draft} onChange={patch} />}
       {draft.type === "matching" && <MatchingFields step={draft} onChange={patch} />}
+      {draft.type === "growth" && <GrowthFields step={draft} onChange={patch} />}
+      {draft.type === "budget" && <BudgetFields step={draft} onChange={patch} />}
+      {draft.type === "risk" && <RiskFields step={draft} onChange={patch} />}
+      {draft.type === "estimate" && <EstimateFields step={draft} onChange={patch} />}
 
       {error && !confirmOpen && (
         <Alert variant="destructive">

@@ -1,5 +1,6 @@
 // types/lesson-input.ts
 
+import type { BudgetConfig, EstimateConfig, GrowthConfig, RiskConfig } from "./interactive";
 import type { PersonaType } from "./users";
 
 // Wartości muszą zgadzać się z enumem PersonaType w bazie i typem w types/users.ts
@@ -23,7 +24,11 @@ export type StepInput =
   | { type: "concept"; title: string; explanation: string; keyTakeaway: string }
   | { type: "decision"; title: string; scenario: string; options: DecisionOptionInput[] }
   | { type: "summary"; title: string; summary: string; keyTakeaways: string[] }
-  | { type: "matching"; title: string; pairs: MatchingPairInput[] };
+  | { type: "matching"; title: string; pairs: MatchingPairInput[] }
+  | { type: "growth"; title: string; config: GrowthConfig }
+  | { type: "budget"; title: string; config: BudgetConfig }
+  | { type: "risk"; title: string; config: RiskConfig }
+  | { type: "estimate"; title: string; config: EstimateConfig };
 
 export interface CreateLessonInput {
   order: number | null; // null = dodaj na końcu

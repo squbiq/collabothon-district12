@@ -24,6 +24,7 @@ export function LessonPlayer({ lesson }: { lesson: Lesson }) {
           step={player.step}
           selectedOptionId={player.selectedOptionId}
           onSelectOption={player.setSelectedOptionId}
+          onComplete={player.completeStep}
         />
       </main>
 

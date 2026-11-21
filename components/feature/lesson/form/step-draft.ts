@@ -1,5 +1,7 @@
 // Szkice kroków edytowane w formularzu + konwersje do/z formatu API.
+import { DEFAULT_CONFIGS } from "@/lib/lesson/interactive-config";
 import type { StepInput } from "@/types/lesson-input";
+import type { BudgetConfig, EstimateConfig, GrowthConfig, RiskConfig } from "@/types/interactive";
 
 export type StepType = StepInput["type"];
 
@@ -28,6 +30,11 @@ export type StepDraft = {
   takeaways: string[];
   options: OptionDraft[];
   pairs: PairDraft[];
+  // ustawienia kroków interaktywnych (każdy typ ma własne, edytowane osobno)
+  growth: GrowthConfig;
+  budget: BudgetConfig;
+  risk: RiskConfig;
+  estimate: EstimateConfig;
 };
 
 export const STEP_LABELS: Record<StepType, string> = {
@@ -36,6 +43,10 @@ export const STEP_LABELS: Record<StepType, string> = {
   decision: "Decision",
   summary: "Summary",
   matching: "Matching",
+  growth: "Growth sliders",
+  budget: "Budget split",
+  risk: "Risk & return",
+  estimate: "Estimate",
 };
 export const STEP_TYPES = Object.keys(STEP_LABELS) as StepType[];
 
@@ -68,6 +79,10 @@ export const emptyStep = (type: StepType): StepDraft => ({
   takeaways: [""],
   options: [emptyOption(), emptyOption()],
   pairs: [emptyPair(), emptyPair()],
+  growth: { ...DEFAULT_CONFIGS.growth },
+  budget: { ...DEFAULT_CONFIGS.budget },
+  risk: { ...DEFAULT_CONFIGS.risk },
+  estimate: { ...DEFAULT_CONFIGS.estimate },
 });
 
 // Szkic formularza -> format wysyłany do API
@@ -106,6 +121,14 @@ export function toStepInput(s: StepDraft): StepInput {
           .filter((p) => p.term.trim() || p.definition.trim())
           .map(({ term, definition }) => ({ term, definition })),
       };
+    case "growth":
+      return { type: "growth", title: s.title, config: s.growth };
+    case "budget":
+      return { type: "budget", title: s.title, config: s.budget };
+    case "risk":
+      return { type: "risk", title: s.title, config: s.risk };
+    case "estimate":
+      return { type: "estimate", title: s.title, config: s.estimate };
   }
 }
 
@@ -138,6 +161,18 @@ export function fromStepInput(step: StepInput): StepDraft {
         step.pairs.length > 0
           ? step.pairs.map((p) => ({ key: nextKey(), term: p.term, definition: p.definition }))
           : [emptyPair(), emptyPair()];
+      break;
+    case "growth":
+      base.growth = step.config;
+      break;
+    case "budget":
+      base.budget = step.config;
+      break;
+    case "risk":
+      base.risk = step.config;
+      break;
+    case "estimate":
+      base.estimate = step.config;
       break;
   }
 

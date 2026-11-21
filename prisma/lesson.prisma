@@ -14,6 +14,10 @@ enum StepType {
   decision
   summary
   matching
+  growth
+  budget
+  risk
+  estimate
 }
 
 // Odpowiednik LessonStatus
@@ -85,6 +89,7 @@ model LessonPersona {
 //   decision -> scenario + options (tabela DecisionOption)
 //   summary  -> summary, keyTakeaways
 //   matching -> pairs (Json: [{ term, definition }])
+//   growth, budget, risk, estimate -> config (Json, kształt zależy od typu)
 model LessonStep {
   id       String   @id @default(cuid())
   lessonId String
@@ -99,6 +104,8 @@ model LessonStep {
   summary      String? @db.Text
   keyTakeaways Json?
   pairs        Json?
+  // Ustawienia kroków interaktywnych (growth / budget / risk / estimate)
+  config       Json?
 
   options DecisionOption[]
   lesson  Lesson           @relation(fields: [lessonId], references: [id], onDelete: Cascade)

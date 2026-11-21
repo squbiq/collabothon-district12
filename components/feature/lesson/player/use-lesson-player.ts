@@ -8,6 +8,8 @@ import type { Lesson } from "@/types/lesson";
 export function useLessonPlayer(lesson: Lesson) {
   const [index, setIndex] = useState(0);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+  // krok interaktywny (dopasowywanie, suwaki...) został rozwiązany/sprawdzony
+  const [stepDone, setStepDone] = useState(false);
   const [saved, setSaved] = useState(false);
   const [, startTransition] = useTransition();
 
@@ -16,12 +18,14 @@ export function useLessonPlayer(lesson: Lesson) {
   const finished = index >= total;
   const isLast = index + 1 === total;
   const progress = total === 0 ? 0 : Math.round((index / total) * 100);
-  // Krok z decyzją wymaga wyboru opcji przed przejściem dalej.
-  const canContinue = step?.type !== "decision" || selectedOptionId !== null;
+  // Decyzja wymaga wyboru opcji, kroki interaktywne – ukończenia zadania.
+  const interactive = ["matching", "growth", "budget", "risk", "estimate"].includes(step?.type ?? "");
+  const canContinue = step?.type === "decision" ? selectedOptionId !== null : !interactive || stepDone;
 
   function next() {
     setIndex((i) => i + 1);
     setSelectedOptionId(null);
+    setStepDone(false);
 
     // Zapis ukończenia lekcji (progress + streak) przy kliknięciu "Finish".
     if (isLast && !saved) {
@@ -35,6 +39,7 @@ export function useLessonPlayer(lesson: Lesson) {
   function restart() {
     setIndex(0);
     setSelectedOptionId(null);
+    setStepDone(false);
   }
 
   return {
@@ -47,6 +52,7 @@ export function useLessonPlayer(lesson: Lesson) {
     canContinue,
     selectedOptionId,
     setSelectedOptionId,
+    completeStep: () => setStepDone(true),
     next,
     restart,
   };

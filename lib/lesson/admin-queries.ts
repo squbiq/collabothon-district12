@@ -4,6 +4,7 @@
 // To NIE jest plik "use server", więc funkcje nie są wystawione jako publiczne akcje.
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/session";
+import { DEFAULT_CONFIGS } from "./interactive-config";
 import { isEditableStepType } from "./step-parser";
 import type { ChapterOption, LessonDataInput, StageDetails } from "@/types/lesson-input";
 
@@ -113,6 +114,15 @@ export async function getStageForEdit(
     case "matching":
       stage = { ...base, type: "matching", pairs: toPairs(step.pairs) };
       break;
+    case "growth":
+    case "budget":
+    case "risk":
+    case "estimate": {
+      // zapisane ustawienia (mogły być zmienione ręcznie w bazie) – bez walidacji, żeby admin mógł je poprawić
+      const config = (step.config && typeof step.config === "object" ? step.config : DEFAULT_CONFIGS[step.type]) as never;
+      stage = { ...base, type: step.type, config } as StageDetails;
+      break;
+    }
   }
 
   return { lessonTitle: step.lesson.title, position: step.order, stage };

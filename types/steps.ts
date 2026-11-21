@@ -1,3 +1,5 @@
+import type { BudgetConfig, EstimateConfig, GrowthConfig, RiskConfig } from "./interactive";
+
 export interface BaseStep {
   id: string;
   title: string;
@@ -49,4 +51,37 @@ export interface MatchingStep extends BaseStep {
   pairs: MatchingPair[];
 }
 
-export type LessonStep = StoryStep | ConceptStep | DecisionStep | SummaryStep | MatchingStep;
+/** Krok 6: suwaki przyczynowo-skutkowe z wykresem wzrostu kapitału. */
+export interface GrowthStep extends BaseStep {
+  type: "growth";
+  config: GrowthConfig;
+}
+
+/** Krok 7: alokacja budżetu z paskiem stresu finansowego. */
+export interface BudgetStep extends BaseStep {
+  type: "budget";
+  config: BudgetConfig;
+}
+
+/** Krok 8: waga ryzyka i zysku. */
+export interface RiskStep extends BaseStep {
+  type: "risk";
+  config: RiskConfig;
+}
+
+/** Krok 9: szacowanie na oko. */
+export interface EstimateStep extends BaseStep {
+  type: "estimate";
+  config: EstimateConfig;
+}
+
+export type LessonStep =
+  | StoryStep
+  | ConceptStep
+  | DecisionStep
+  | SummaryStep
+  | MatchingStep
+  | GrowthStep
+  | BudgetStep
+  | RiskStep
+  | EstimateStep;

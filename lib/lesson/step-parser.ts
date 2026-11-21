@@ -5,6 +5,7 @@
 // zmiana typu kroku czyści stare pola.
 import { Prisma } from "@/gen/prisma/client";
 import type { StepInput } from "@/types/lesson-input";
+import { isInteractiveType, parseConfig } from "./interactive-config";
 
 export type ParsedStep = {
   type: StepInput["type"];
@@ -16,11 +17,12 @@ export type ParsedStep = {
   summary: string | null;
   keyTakeaways: string[] | null;
   pairs: { term: string; definition: string }[] | null;
+  config: object | null;
   options: { order: number; label: string; isOptimal: boolean; feedback: string }[];
 };
 
 // Typy kroków obsługiwane przez panel admina (enum w bazie ma też m.in. fill i match).
-export const EDITABLE_STEP_TYPES = ["story", "concept", "decision", "summary", "matching"] as const;
+export const EDITABLE_STEP_TYPES = ["story", "concept", "decision", "summary", "matching", "growth", "budget", "risk", "estimate"] as const;
 export const isEditableStepType = (t: string): t is StepInput["type"] =>
   (EDITABLE_STEP_TYPES as readonly string[]).includes(t);
 
@@ -60,6 +62,7 @@ function parseStepUnsafe(raw: StepInput): ParseResult {
     summary: null,
     keyTakeaways: null,
     pairs: null,
+    config: null,
     options: [],
   };
 
@@ -115,6 +118,16 @@ function parseStepUnsafe(raw: StepInput): ParseResult {
       }
       return { ok: true, step: { ...base, pairs } };
     }
+    case "growth":
+    case "budget":
+    case "risk":
+    case "estimate": {
+      const type = raw.type;
+      if (!isInteractiveType(type)) return fail("Unknown stage type.");
+      const parsed = parseConfig(type, (raw as { config?: unknown }).config);
+      if (!parsed.ok) return fail(parsed.error);
+      return { ok: true, step: { ...base, config: parsed.config } };
+    }
     default:
       return fail("Unknown stage type.");
   }
@@ -132,5 +145,6 @@ export function stepColumns(step: ParsedStep) {
     summary: step.summary,
     keyTakeaways: step.keyTakeaways ?? Prisma.JsonNull,
     pairs: step.pairs ?? Prisma.JsonNull,
+    config: step.config ?? Prisma.JsonNull,
   };
 }

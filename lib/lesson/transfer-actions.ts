@@ -94,6 +94,14 @@ export async function exportLessons(
           case "matching":
             steps.push({ type: "matching", title: s.title, pairs: toPairs(s.pairs) });
             break;
+          case "growth":
+          case "budget":
+          case "risk":
+          case "estimate":
+            if (s.config && typeof s.config === "object") {
+              steps.push({ type: s.type, title: s.title, config: s.config } as StepInput);
+            }
+            break;
         }
       }
 

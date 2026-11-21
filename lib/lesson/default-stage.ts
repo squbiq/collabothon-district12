@@ -3,6 +3,7 @@
 // Domyślna treść nowego stage'a. Jest poprawna dla walidacji i odtwarzacza,
 // więc świeżo utworzona lekcja od razu się wyświetla – admin tylko podmienia tekst.
 import type { StepInput } from "@/types/lesson-input";
+import { DEFAULT_CONFIGS } from "./interactive-config";
 
 export function defaultStage(type: StepInput["type"]): StepInput {
   switch (type) {
@@ -47,5 +48,13 @@ export function defaultStage(type: StepInput["type"]): StepInput {
           },
         ],
       };
+    case "growth":
+      return { type, title: "Growth sliders", config: { ...DEFAULT_CONFIGS.growth } };
+    case "budget":
+      return { type, title: "Budget split", config: { ...DEFAULT_CONFIGS.budget } };
+    case "risk":
+      return { type, title: "Risk and return", config: { ...DEFAULT_CONFIGS.risk } };
+    case "estimate":
+      return { type, title: "Estimate it", config: { ...DEFAULT_CONFIGS.estimate } };
   }
 }
