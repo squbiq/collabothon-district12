@@ -9,7 +9,6 @@ import "dotenv/config";
 import { hashPassword } from "better-auth/crypto";
 import { Prisma, PersonaType, StepType } from "@/gen/prisma/client";
 import { prisma } from "@/lib/prisma";
-import { LESSON_PATHS } from "@/lib/lesson/paths";
 
 const PASSWORD = "Password123!";
 
@@ -66,27 +65,12 @@ type SeedLesson = Omit<
   steps: SeedStep[];
 };
 
-// Tematy = ścieżki nauki z LESSON_PATHS (id tematu == parametr ?path= na mapie lekcji).
-const TOPICS: Prisma.TopicUncheckedCreateInput[] = LESSON_PATHS.map((path, index) => ({
-  id: path.id,
-  topicTitle: path.name,
-  orderNumber: index + 1,
-}));
+const TOPIC_ID = "seed-topic";
 
-// Każdy temat ma "Chapter 1"; "stock-investor" dodatkowo "Chapter 2" (test grupowania po chapterTitle).
 const CHAPTERS: Prisma.ChapterUncheckedCreateInput[] = [
-  ...LESSON_PATHS.map((path) => ({
-    id: `seed-chapter-${path.id}-1`,
-    topicId: path.id,
-    orderNumber: 1,
-    chapterTitle: "Chapter 1",
-  })),
-  { id: "seed-chapter-stock-investor-2", topicId: "stock-investor", orderNumber: 2, chapterTitle: "Chapter 2" },
+  { id: "seed-chapter-1", topicId: TOPIC_ID, orderNumber: 1, chapterTitle: "Money basics" },
+  { id: "seed-chapter-2", topicId: TOPIC_ID, orderNumber: 2, chapterTitle: "First investments" },
 ];
-
-// Stare rekordy z poprzedniej wersji seeda – usuwane po przepięciu lekcji.
-const LEGACY_CHAPTER_IDS = ["seed-chapter-1", "seed-chapter-2"];
-const LEGACY_TOPIC_ID = "seed-topic";
 
 // Komplet czterech typów kroków – używany przez większość lekcji.
 const fullSteps = (topic: string): SeedStep[] => [
@@ -123,7 +107,8 @@ const LESSONS: SeedLesson[] = [
   {
     id: "seed-lesson-1",
     order: 1,
-    chapterId: "seed-chapter-personal-finance-1",
+    pathId: "personal-finance",
+    chapterId: "seed-chapter-1",
     title: "What is a budget?",
     description: "Learn how to plan your monthly income and expenses.",
     estimatedMinutes: 5,
@@ -134,7 +119,8 @@ const LESSONS: SeedLesson[] = [
   {
     id: "seed-lesson-2",
     order: 2,
-    chapterId: "seed-chapter-stock-investor-1",
+    pathId: "stock-investor",
+    chapterId: "seed-chapter-2",
     title: "How the stock market works",
     description: "Shares, prices and why they move.",
     estimatedMinutes: 8,
@@ -146,7 +132,8 @@ const LESSONS: SeedLesson[] = [
     // Długi tytuł i opis – sprawdza zawijanie tekstu w karcie.
     id: "seed-lesson-3",
     order: 3,
-    chapterId: "seed-chapter-stock-investor-1",
+    pathId: "stock-investor",
+    chapterId: "seed-chapter-2",
     title: "Diversification: why you should never put all your eggs into one basket, even a very good one",
     description:
       "A longer description used to check text wrapping on the lesson map: how spreading money across different assets, sectors and countries reduces risk without necessarily reducing expected returns.",
@@ -158,7 +145,8 @@ const LESSONS: SeedLesson[] = [
   {
     id: "seed-lesson-4",
     order: 4,
-    chapterId: "seed-chapter-business-finance-1",
+    pathId: "business-finance",
+    chapterId: "seed-chapter-2",
     title: "Cash flow for small businesses",
     description: "Why profitable companies still run out of cash.",
     estimatedMinutes: 10,
@@ -169,7 +157,8 @@ const LESSONS: SeedLesson[] = [
   {
     id: "seed-lesson-5",
     order: 5,
-    chapterId: "seed-chapter-taxes-and-law-1",
+    pathId: "taxes-and-law",
+    chapterId: "seed-chapter-2",
     title: "Capital gains tax basics",
     description: "What you owe when your investments make a profit.",
     estimatedMinutes: 7,
@@ -181,7 +170,8 @@ const LESSONS: SeedLesson[] = [
     // Lekcja bez kroków – sprawdza pusty stan odtwarzacza.
     id: "seed-lesson-6",
     order: 6,
-    chapterId: "seed-chapter-stock-investor-2",
+    pathId: "stock-investor",
+    chapterId: "seed-chapter-2",
     title: "Lesson without steps",
     description: "Used to test the empty state of the lesson player.",
     estimatedMinutes: 1,
@@ -225,13 +215,11 @@ async function seedUsers() {
 }
 
 async function seedLessons() {
-  for (const topic of TOPICS) {
-    await prisma.topic.upsert({
-      where: { id: topic.id! },
-      create: topic,
-      update: { topicTitle: topic.topicTitle, orderNumber: topic.orderNumber },
-    });
-  }
+  await prisma.topic.upsert({
+    where: { id: TOPIC_ID },
+    create: { id: TOPIC_ID, topicTitle: "Finance basics" },
+    update: { topicTitle: "Finance basics" },
+  });
 
   for (const chapter of CHAPTERS) {
     await prisma.chapter.upsert({
@@ -269,10 +257,6 @@ async function seedLessons() {
       });
     }
   }
-
-  // Lekcje są już w nowych rozdziałach – stary temat i rozdziały można usunąć.
-  await prisma.chapter.deleteMany({ where: { id: { in: LEGACY_CHAPTER_IDS } } });
-  await prisma.topic.deleteMany({ where: { id: LEGACY_TOPIC_ID } });
 }
 
 async function seedProgress() {

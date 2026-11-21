@@ -10,7 +10,6 @@ import { toast } from "@/components/ui/toast";
 import { createLessonWithStage, saveLessonData } from "@/lib/lesson/admin-actions";
 import type { ChapterOption, LessonDataInput } from "@/types/lesson-input";
 import type { PersonaType } from "@/types/users";
-import type { TopicOption } from "@/lib/lesson/topics";
 import { LessonDetailsCard } from "@/components/feature/lesson/form/lesson-details-card";
 import {
   emptyLessonData,
@@ -20,28 +19,19 @@ import {
 } from "@/components/feature/lesson/form/lesson-data";
 
 type Props = {
-  topics: TopicOption[];
   chapters: ChapterOption[];
   /** Brak = tworzenie nowej lekcji, podane = edycja istniejącej. */
   lesson?: LessonDataInput & { id: string };
 };
 
-export function LessonDataForm({ topics, chapters, lesson }: Props) {
+export function LessonDataForm({ chapters, lesson }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [fields, setFields] = useState<LessonDataFields>(() => {
-    if (!lesson) return { ...emptyLessonData(), topicId: topics[0]?.id ?? "" };
-    // temat wynika z rozdziału edytowanej lekcji
-    const topicId = chapters.find((c) => c.id === lesson.chapterId)?.topicId ?? topics[0]?.id ?? "";
-    return fromLessonData(lesson, topicId);
-  });
+  const [fields, setFields] = useState<LessonDataFields>(() => (lesson ? fromLessonData(lesson) : emptyLessonData()));
 
   const setField = <K extends keyof LessonDataFields>(key: K, value: LessonDataFields[K]) =>
     setFields((prev) => ({ ...prev, [key]: value }));
-
-  // zmiana tematu czyści rozdział, bo rozdziały należą do konkretnego tematu
-  const changeTopic = (topicId: string) => setFields((prev) => ({ ...prev, topicId, chapterId: "" }));
 
   const togglePersona = (p: PersonaType) =>
     setField("personas", fields.personas.includes(p) ? fields.personas.filter((x) => x !== p) : [...fields.personas, p]);
@@ -68,14 +58,7 @@ export function LessonDataForm({ topics, chapters, lesson }: Props) {
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-6">
-      <LessonDetailsCard
-        fields={fields}
-        topics={topics}
-        chapters={chapters}
-        onTopicChange={changeTopic}
-        onChange={setField}
-        onTogglePersona={togglePersona}
-      />
+      <LessonDetailsCard fields={fields} chapters={chapters} onChange={setField} onTogglePersona={togglePersona} />
 
       {error && (
         <Alert variant="destructive">

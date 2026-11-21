@@ -26,7 +26,7 @@ export async function getLessonTree(): Promise<LessonTreeItem[]> {
 export async function getChapterOptions(): Promise<ChapterOption[]> {
   await requireAdmin();
   const rows = await prisma.chapter.findMany({ orderBy: { orderNumber: "asc" } });
-  return rows.map((r) => ({ id: r.id, title: r.chapterTitle, topicId: r.topicId }));
+  return rows.map((r) => ({ id: r.id, title: r.chapterTitle }));
 }
 
 export async function getLessonForEdit(

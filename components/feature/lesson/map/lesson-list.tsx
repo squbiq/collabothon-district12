@@ -1,49 +1,31 @@
-// Lista lekcji wybranego tematu, pogrupowana po rozdziałach (komponent serwerowy – sam pobiera dane).
+// Lista lekcji wybranej ścieżki (komponent serwerowy – sam pobiera dane).
 import { connection } from "next/server";
 import { getLessons } from "@/lib/lesson/lessons";
+import type { LessonPathId } from "@/lib/lesson/paths";
+import { LessonCard } from "./lesson-card";
 import { getSession } from "@/lib/session";
-import type { LessonMapItem } from "@/types/lesson";
-import { LessonChapterGroup } from "./lesson-chapter-group";
-import { LoginRequiredNotice } from "./login-required-notice";
 
-// Grupuje po chapterTitle; rozdziały w kolejności numerów, lekcje wg kolejności z bazy.
-function groupByChapter(lessons: LessonMapItem[]) {
-  const groups = new Map<string, { number: number; lessons: LessonMapItem[] }>();
-  for (const lesson of lessons) {
-    const key = lesson.chapterTitle || "Other lessons";
-    const group = groups.get(key) ?? { number: lesson.chapterNumber, lessons: [] };
-    group.number = Math.min(group.number, lesson.chapterNumber);
-    group.lessons.push(lesson);
-    groups.set(key, group);
-  }
-  return [...groups.entries()]
-    .sort(([, a], [, b]) => a.number - b.number)
-    .map(([title, group]) => ({ title, lessons: group.lessons }));
-}
-
-export async function LessonList({ topicId }: { topicId: string }) {
-  // Dane zależne od żądania (sesja, baza) pobieramy dopiero w request-time (cacheComponents).
+export async function LessonList({ pathId }: { pathId: LessonPathId }) {
+  // Dane zależne od żądania (sesja, baza, czas) muszą być pobrane dopiero w request-time.
+  // Bez tego Next (cacheComponents) wykonuje zapytanie podczas prerenderu i zgłasza błąd Date.now().
   await connection();
+  // useUser() działa tylko w komponentach klienckich, tu sesję bierzemy po stronie serwera.
   const session = await getSession();
-  const isLoggedIn = Boolean(session);
-
   const all = await getLessons(session?.user.id);
-  const lessons = all.filter((l) => l.topicId === topicId);
-  const groups = groupByChapter(lessons);
+  // Lekcje bez pathId pokazują się w każdej ścieżce, dopóki nie uzupełnisz danych.
+  const lessons = all.filter((l) => !l.pathId || l.pathId === pathId);
+
+  if (lessons.length === 0) {
+    return <p className="font-medium text-muted-foreground">No lessons in this path.</p>;
+  }
 
   return (
-    <>
-      {!isLoggedIn && <LoginRequiredNotice />}
-
-      {groups.length === 0 ? (
-        <p className="font-medium text-muted-foreground">No lessons in this topic.</p>
-      ) : (
-        <div className="flex flex-col gap-8">
-          {groups.map((group) => (
-            <LessonChapterGroup key={group.title} title={group.title} lessons={group.lessons} locked={!isLoggedIn} />
-          ))}
-        </div>
-      )}
-    </>
+    <ul className="flex flex-col gap-4">
+      {lessons.map((lesson) => (
+        <li key={lesson.id}>
+          <LessonCard lesson={lesson} />
+        </li>
+      ))}
+    </ul>
   );
 }

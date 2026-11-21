@@ -3,13 +3,12 @@
 // Edycja danych lekcji (ten sam formularz co przy tworzeniu, ale wypełniony).
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { getTopics } from "@/lib/lesson/topics";
 import { getChapterOptions, getLessonForEdit } from "@/lib/lesson/admin-queries";
 import { LessonDataForm } from "@/components/feature/lesson/admin/lesson-data-form";
 
 async function EditLessonContent({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [lesson, topics, chapters] = await Promise.all([getLessonForEdit(id), getTopics(), getChapterOptions()]);
+  const [lesson, chapters] = await Promise.all([getLessonForEdit(id), getChapterOptions()]);
   if (!lesson) notFound();
 
   return (
@@ -19,7 +18,7 @@ async function EditLessonContent({ params }: { params: Promise<{ id: string }> }
         <p className="font-medium text-muted-foreground">{lesson.title}</p>
       </header>
       {/* key: przy przejściu na inną lekcję formularz startuje od nowa */}
-      <LessonDataForm key={lesson.id} lesson={lesson} topics={topics} chapters={chapters} />
+      <LessonDataForm key={lesson.id} lesson={lesson} chapters={chapters} />
     </div>
   );
 }

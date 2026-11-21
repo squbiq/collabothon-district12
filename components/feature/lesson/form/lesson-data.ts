@@ -3,8 +3,6 @@ import type { LessonDataInput } from "@/types/lesson-input";
 import type { PersonaType } from "@/types/users";
 
 export type LessonDataFields = {
-  /** Tylko do UI: temat wybranego rozdziału (nie jest wysyłany – wynika z rozdziału). */
-  topicId: string;
   order: string;
   chapterId: string;
   title: string;
@@ -15,7 +13,6 @@ export type LessonDataFields = {
 };
 
 export const emptyLessonData = (): LessonDataFields => ({
-  topicId: "",
   order: "",
   chapterId: "",
   title: "",
@@ -25,8 +22,7 @@ export const emptyLessonData = (): LessonDataFields => ({
   personas: [],
 });
 
-export const fromLessonData = (l: LessonDataInput, topicId: string): LessonDataFields => ({
-  topicId,
+export const fromLessonData = (l: LessonDataInput): LessonDataFields => ({
   order: l.order !== null ? String(l.order) : "",
   chapterId: l.chapterId,
   title: l.title,

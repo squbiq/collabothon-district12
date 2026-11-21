@@ -169,7 +169,7 @@ export async function getChapters(): Promise<ChapterOption[]> {
     });
 
     return rows.map((row) => (
-      { id: row.id, title: row.chapterTitle, topicId: row.topicId }
+      { id: row.id, title: row.chapterTitle }
     ));
  }
 

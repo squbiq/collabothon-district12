@@ -36,8 +36,6 @@ export type CreateLessonResult =
 export type ChapterOption = {
   id: string;
   title: string;
-  /** Temat, do którego należy rozdział. */
-  topicId: string;
 };
 
 export type LessonSummary = {
