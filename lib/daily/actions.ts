@@ -19,22 +19,46 @@ export interface DailyLessonDTO {
   }[];
 }
 
+// Zadanie dnia jest wspólne dla wszystkich: gdy na dziś nic nie przypisano, bierzemy
+// najstarsze zadanie z puli (dateKey = null) i przypisujemy mu dzisiejszą datę.
+async function ensureTodaysLesson(todayKey: string) {
+  const existing = await prisma.dailyLesson.findUnique({ where: { dateKey: todayKey }, select: { id: true } });
+  if (existing) return;
+
+  const candidate = await prisma.dailyLesson.findFirst({
+    where: { dateKey: null },
+    orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+    select: { id: true },
+  });
+  if (!candidate) return;
+
+  try {
+    await prisma.dailyLesson.updateMany({
+      where: { id: candidate.id, dateKey: null },
+      data: { dateKey: todayKey },
+    });
+  } catch {
+    // równoległe żądanie przypisało już dzisiejsze zadanie (unikalny dateKey) – nic do zrobienia
+  }
+}
+
 export async function getDailyLessonsData(userId?: string) {
   const todayKey = toDateKey(new Date());
+  await ensureTodaysLesson(todayKey);
 
   const lessons = await prisma.dailyLesson.findMany({
     where: {
       dateKey: { lte: todayKey },
     },
     include: {
-      options: true,
+      options: { orderBy: [{ order: 'asc' }, { id: 'asc' }] },
     },
     orderBy: { dateKey: 'desc' },
   });
 
   const lessonsByDate: Record<string, DailyLessonDTO> = {};
   for (const lesson of lessons) {
-    lessonsByDate[lesson.dateKey] = lesson;
+    if (lesson.dateKey) lessonsByDate[lesson.dateKey] = { ...lesson, dateKey: lesson.dateKey };
   }
 
   if (!userId) {
@@ -64,6 +88,7 @@ export async function getDailyLessonsData(userId?: string) {
 
   for (const item of progressList) {
     const key = item.dailyLesson.dateKey;
+    if (!key) continue;
     completedDates.push(key);
     answersByDate[key] = item.selectedOptionId;
   }

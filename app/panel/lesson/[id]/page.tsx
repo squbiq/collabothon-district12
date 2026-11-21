@@ -5,7 +5,6 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getTopics } from "@/lib/lesson/topics";
 import { getChapterOptions, getLessonForEdit } from "@/lib/lesson/admin-queries";
-import { ExportLessonButton } from "@/components/feature/lesson/admin/lesson-transfer";
 import { LessonDataForm } from "@/components/feature/lesson/admin/lesson-data-form";
 import { connection } from "next/server";
 
@@ -21,7 +20,6 @@ async function EditLessonContent({ params }: { params: Promise<{ id: string }> }
       <header className="flex flex-col gap-1">
         <h1 className="text-3xl font-extrabold text-foreground">Edit lesson</h1>
         <p className="font-medium text-muted-foreground">{lesson.title}</p>
-        <ExportLessonButton lessonId={lesson.id} />
       </header>
       {/* key: przy przejściu na inną lekcję formularz startuje od nowa */}
       <LessonDataForm key={lesson.id} lesson={lesson} topics={topics} chapters={chapters} />

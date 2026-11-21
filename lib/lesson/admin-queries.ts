@@ -117,3 +117,27 @@ export async function getStageForEdit(
 
   return { lessonTitle: step.lesson.title, position: step.order, stage };
 }
+export type TopicForEdit = {
+  id: string;
+  title: string;
+  chapters: { id: string; title: string; lessonCount: number }[];
+};
+
+export async function getTopicForEdit(id: string): Promise<TopicForEdit | null> {
+  await requireAdmin();
+  const row = await prisma.topic.findUnique({
+    where: { id },
+    include: {
+      Chapter: {
+        orderBy: [{ orderNumber: "asc" }, { id: "asc" }],
+        include: { _count: { select: { Lessons: true } } },
+      },
+    },
+  });
+  if (!row) return null;
+  return {
+    id: row.id,
+    title: row.topicTitle,
+    chapters: row.Chapter.map((c) => ({ id: c.id, title: c.chapterTitle, lessonCount: c._count.Lessons })),
+  };
+}

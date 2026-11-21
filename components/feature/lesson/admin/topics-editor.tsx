@@ -1,16 +1,16 @@
-// Edytor tematów: input + Enter dodaje temat, ołówek zmienia nazwę, kosz usuwa (tylko pusty temat).
+// Edytor tematów: input + Enter dodaje temat, ołówek otwiera stronę tematu (nazwa i rozdziały), kosz usuwa (tylko pusty temat).
 "use client";
 
 import { useState, useTransition, type KeyboardEvent } from "react";
-import { Check, Pencil, Trash2, X } from "lucide-react";
+import Link from "next/link";
+import { Pencil, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { createTopic, deleteTopic, renameTopic } from "@/lib/lesson/topic-actions";
+import { createTopic, deleteTopic } from "@/lib/lesson/topic-actions";
 import type { TopicOption } from "@/lib/lesson/topics";
 
 export function TopicsEditor({ topics }: { topics: TopicOption[] }) {
   const [pending, startTransition] = useTransition();
   const [newTitle, setNewTitle] = useState("");
-  const [editing, setEditing] = useState<{ id: string; title: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Wspólna obsługa wyniku akcji: błąd pokazujemy pod listą, sukces odświeża dane.
@@ -27,14 +27,6 @@ export function TopicsEditor({ topics }: { topics: TopicOption[] }) {
     if (e.key !== "Enter") return;
     e.preventDefault();
     run(() => createTopic(newTitle), () => setNewTitle(""));
-  }
-
-  function onEditKey(e: KeyboardEvent<HTMLInputElement>) {
-    if (!editing) return;
-    if (e.key === "Escape") return setEditing(null);
-    if (e.key !== "Enter") return;
-    e.preventDefault();
-    run(() => renameTopic(editing.id, editing.title), () => setEditing(null));
   }
 
   return (
@@ -54,37 +46,20 @@ export function TopicsEditor({ topics }: { topics: TopicOption[] }) {
       <ul className="flex max-h-48 flex-col gap-1 overflow-y-auto">
         {topics.map((topic) => (
           <li key={topic.id} className="flex items-center gap-1">
-            {editing?.id === topic.id ? (
-              <>
-                <Input
-                  autoFocus
-                  value={editing.title}
-                  disabled={pending}
-                  aria-label={`Rename ${topic.title}`}
-                  className="h-7"
-                  onChange={(e) => setEditing({ id: topic.id, title: e.target.value })}
-                  onKeyDown={onEditKey}
-                />
-                <IconButton label="Save" onClick={() => run(() => renameTopic(topic.id, editing.title), () => setEditing(null))}>
-                  <Check className="size-4" />
-                </IconButton>
-                <IconButton label="Cancel" onClick={() => setEditing(null)}>
-                  <X className="size-4" />
-                </IconButton>
-              </>
-            ) : (
-              <>
-                <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground" title={topic.title}>
-                  {topic.title}
-                </span>
-                <IconButton label="Rename topic" onClick={() => setEditing({ id: topic.id, title: topic.title })}>
-                  <Pencil className="size-4" />
-                </IconButton>
-                <IconButton label="Delete topic" destructive disabled={pending} onClick={() => run(() => deleteTopic(topic.id))}>
-                  <Trash2 className="size-4" />
-                </IconButton>
-              </>
-            )}
+            <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground" title={topic.title}>
+              {topic.title}
+            </span>
+            <Link
+              href={`/panel/lesson/topic/${topic.id}`}
+              title="Edit topic and chapters"
+              aria-label="Edit topic and chapters"
+              className="inline-flex size-7 flex-none items-center justify-center rounded-md text-muted-foreground transition-colors outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
+            >
+              <Pencil className="size-4" />
+            </Link>
+            <IconButton label="Delete topic" destructive disabled={pending} onClick={() => run(() => deleteTopic(topic.id))}>
+              <Trash2 className="size-4" />
+            </IconButton>
           </li>
         ))}
         {topics.length === 0 && <li className="text-sm text-muted-foreground">No topics yet.</li>}

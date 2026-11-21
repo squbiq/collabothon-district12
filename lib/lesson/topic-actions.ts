@@ -101,3 +101,86 @@ export async function createChapter(
     return fail("Could not add the chapter.");
   }
 }
+
+export async function renameChapter(id: string, title: string): Promise<Result> {
+  if (!(await isAdmin())) return fail("Forbidden.");
+  const chapterTitle = clean(title);
+  if (!chapterTitle) return fail("Enter a chapter name.");
+
+  try {
+    await prisma.chapter.update({ where: { id }, data: { chapterTitle } });
+    refresh();
+    return { ok: true };
+  } catch (e) {
+    console.error("renameChapter failed", e);
+    return fail("Could not rename the chapter.");
+  }
+}
+
+export async function deleteChapter(id: string): Promise<Result> {
+  if (!(await isAdmin())) return fail("Forbidden.");
+
+  try {
+    // Usunięcie rozdziału kasowałoby kaskadowo jego lekcje – blokujemy, gdy nie jest pusty.
+    const lessons = await prisma.lesson.count({ where: { chapterId: id } });
+    if (lessons > 0) return fail("This chapter still has lessons. Delete or move them first.");
+
+    await prisma.$transaction(async (tx) => {
+      const chapter = await tx.chapter.findUnique({ where: { id }, select: { topicId: true } });
+      if (!chapter) throw new Error("Chapter not found.");
+      await tx.chapter.delete({ where: { id } });
+      await normalizeChapterOrder(tx, chapter.topicId);
+    });
+    refresh();
+    return { ok: true };
+  } catch (e) {
+    console.error("deleteChapter failed", e);
+    return fail("Could not delete the chapter.");
+  }
+}
+
+// Zmiana kolejności: zamiana miejscami z sąsiadem. orderNumber nie jest unikalny w bazie,
+// więc po każdej zmianie numerujemy rozdziały tematu od nowa (1..n).
+export async function moveChapter(id: string, direction: "up" | "down"): Promise<Result> {
+  if (!(await isAdmin())) return fail("Forbidden.");
+  if (direction !== "up" && direction !== "down") return fail("Unknown direction.");
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      const chapter = await tx.chapter.findUnique({ where: { id }, select: { topicId: true } });
+      if (!chapter) throw new Error("Chapter not found.");
+
+      const siblings = await tx.chapter.findMany({
+        where: { topicId: chapter.topicId },
+        orderBy: [{ orderNumber: "asc" }, { id: "asc" }],
+        select: { id: true },
+      });
+      const from = siblings.findIndex((c) => c.id === id);
+      const to = direction === "up" ? from - 1 : from + 1;
+      if (from < 0 || to < 0 || to >= siblings.length) return;
+
+      [siblings[from], siblings[to]] = [siblings[to], siblings[from]];
+      for (const [i, c] of siblings.entries()) {
+        await tx.chapter.update({ where: { id: c.id }, data: { orderNumber: i + 1 } });
+      }
+    });
+    refresh();
+    return { ok: true };
+  } catch (e) {
+    console.error("moveChapter failed", e);
+    return fail("Could not change the order.");
+  }
+}
+
+type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
+
+async function normalizeChapterOrder(tx: Tx, topicId: string) {
+  const rows = await tx.chapter.findMany({
+    where: { topicId },
+    orderBy: [{ orderNumber: "asc" }, { id: "asc" }],
+    select: { id: true, orderNumber: true },
+  });
+  for (const [i, c] of rows.entries()) {
+    if (c.orderNumber !== i + 1) await tx.chapter.update({ where: { id: c.id }, data: { orderNumber: i + 1 } });
+  }
+}

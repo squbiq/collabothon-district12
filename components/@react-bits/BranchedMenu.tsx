@@ -39,6 +39,8 @@ export interface BranchedMenuItem {
 export interface BranchedMenuProps {
   items?: BranchedMenuItem[];
   defaultOpen?: number | number[];
+  /** Akordeon: naraz rozwinięta tylko jedna sekcja (otwarcie jednej zwija pozostałe). */
+  singleOpen?: boolean;
   defaultActive?: string;
   /** Gdy podane, aktywny element jest sterowany z zewnątrz (np. z adresu strony). */
   active?: string;
@@ -89,6 +91,7 @@ const toSet = (open: number | number[]) => new Set(Array.isArray(open) ? open : 
 const BranchedMenu: React.FC<BranchedMenuProps> = ({
   items = DEFAULT_ITEMS,
   defaultOpen = 0,
+  singleOpen = false,
   defaultActive = '',
   active: activeProp,
   onSelect,
@@ -107,7 +110,11 @@ const BranchedMenu: React.FC<BranchedMenuProps> = ({
   foldDuration = 300,
   className = ''
 }) => {
-  const [open, setOpen] = useState<Set<number>>(() => toSet(defaultOpen));
+  const [open, setOpen] = useState<Set<number>>(() => {
+    const initial = toSet(defaultOpen);
+    // w trybie akordeonu zostaje jedna (pierwsza) rozwinięta sekcja
+    return singleOpen && initial.size > 1 ? new Set([[...initial][0]]) : initial;
+  });
   const [activeState, setActive] = useState(() => {
     if (defaultActive) return defaultActive;
     const first = items.find((it, i) => it.children && toSet(defaultOpen).has(i));
@@ -158,8 +165,8 @@ const BranchedMenu: React.FC<BranchedMenuProps> = ({
   };
   const toggle = (i: number) => {
     setOpen(prev => {
-      const next = new Set(prev);
-      const isOpen = !next.has(i);
+      const isOpen = !prev.has(i);
+      const next = new Set(singleOpen ? [] : prev);
       if (isOpen) next.add(i);
       else next.delete(i);
       latest.current.onToggle?.(i, isOpen);

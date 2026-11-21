@@ -88,6 +88,7 @@ export function LessonMenu({ lessons }: { lessons: LessonTreeItem[] }) {
             items={items}
             active={active}
             defaultOpen={openIndex}
+            singleOpen
             onSelect={onSelect}
             color="var(--foreground)"
             accentColor="var(--primary)"

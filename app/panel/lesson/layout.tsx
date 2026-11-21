@@ -6,7 +6,7 @@ import { Suspense } from "react";
 import { Plus } from "lucide-react";
 import { chunkyButtonVariants } from "@/components/shared/chunky-button";
 import { LessonMenuLoader } from "@/components/feature/lesson/admin/lesson-menu-loader";
-import { LessonTransferPanel } from "@/components/feature/lesson/admin/lesson-transfer";
+import { LessonTransferLoader } from "@/components/feature/lesson/admin/lesson-transfer-loader";
 import { TopicsEditorLoader } from "@/components/feature/lesson/admin/topics-editor-loader";
 
 export default function LessonAdminLayout({ children }: { children: React.ReactNode }) {
@@ -16,7 +16,9 @@ export default function LessonAdminLayout({ children }: { children: React.ReactN
         <Link href="/panel/lesson/create" className={chunkyButtonVariants({ tone: "success", size: "lg", fullWidth: true })}>
           <Plus /> Create lesson
         </Link>
-        <LessonTransferPanel />
+        <Suspense fallback={<p className="text-sm text-muted-foreground">Loading…</p>}>
+          <LessonTransferLoader />
+        </Suspense>
         <Suspense fallback={<p className="text-sm text-muted-foreground">Loading topics…</p>}>
           <TopicsEditorLoader />
         </Suspense>

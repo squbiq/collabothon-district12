@@ -1,6 +1,9 @@
 model DailyLesson {
   id          String              @id @default(cuid())
-  dateKey     String              @unique // Format "YYYY-MM-DD"
+  // Format "YYYY-MM-DD". NULL = zadanie czeka w puli; pierwszego dnia bez zadania
+  // dostaje dzisiejszą datę (to samo zadanie dla wszystkich użytkowników).
+  dateKey     String?             @unique
+  createdAt   DateTime            @default(now())
   category    String
   title       String
   scenario    String              @db.Text
@@ -15,6 +18,7 @@ model DailyLesson {
 model DailyOption {
   id            String      @id @default(cuid())
   dailyLessonId String
+  order         Int         @default(0)
   label         String
   isOptimal     Boolean     @default(false)
   feedback      String      @db.Text
