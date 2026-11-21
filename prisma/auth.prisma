@@ -22,6 +22,9 @@ model User {
   userLessonProgress UserLessonProgress[]
   userDailyProgress  UserDailyProgress[]
   arenaDuels         ArenaDuel[]
+  hostedMatches      ArenaMatch[]       @relation("ArenaMatchHost")
+  joinedMatches      ArenaMatch[]       @relation("ArenaMatchGuest")
+  matchAnswers       ArenaMatchAnswer[] @relation("ArenaMatchAnswers")
 
   @@unique([email])
   @@unique([username])

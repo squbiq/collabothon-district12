@@ -24,7 +24,7 @@ export async function getLesson(id: string): Promise<Lesson | null> {
   const steps = row.steps.flatMap((s): LessonStep[] => {
     const step = rowToLessonStep(s);
     if (step) return [step];
-    console.warn(`Pominięto niepoprawny krok ${s.id} (${s.type}) w lekcji ${id}`);
+    console.warn(`Skipped invalid step ${s.id} (${s.type}) in lesson ${id}`);
     return [];
   });
 

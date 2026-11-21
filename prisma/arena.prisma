@@ -5,11 +5,25 @@ enum DuelStatus {
   finished
 }
 
+enum ArenaDifficulty {
+  easy
+  medium
+  hard
+}
+
+enum MatchStatus {
+  waiting
+  in_progress
+  finished
+  cancelled
+}
+
 // Jeden pojedynek z botem. Cały stan trzymamy po stronie serwera.
 model ArenaDuel {
   id            String     @id @default(cuid())
   userId        String
   status        DuelStatus @default(in_progress)
+  difficulty    ArenaDifficulty @default(medium)
 
   // Kolejność pytań (id z DailyLesson), wylosowana przy starcie.
   questionIds   Json
@@ -29,4 +43,53 @@ model ArenaDuel {
 
   @@index([userId(length: 191)])
   @@map("arena_duel")
+}
+
+// Mecz online: dwóch graczy odpowiada na te same pytania, liczy się poprawność i czas odpowiedzi.
+// Stan jest w bazie, a klienci odpytują serwer (polling) – bez websocketów.
+model ArenaMatch {
+  id          String      @id @default(cuid())
+  status      MatchStatus @default(waiting)
+  hostId      String
+  guestId     String?
+
+  // Kolejność pytań (id z DailyLesson), wylosowana przez hosta.
+  questionIds Json
+
+  hostXp      Int         @default(0)
+  guestXp     Int         @default(0)
+
+  createdAt   DateTime    @default(now())
+  startedAt   DateTime?
+  finishedAt  DateTime?
+
+  host        User        @relation("ArenaMatchHost", fields: [hostId], references: [id], onDelete: Cascade)
+  guest       User?       @relation("ArenaMatchGuest", fields: [guestId], references: [id], onDelete: SetNull)
+  answers     ArenaMatchAnswer[]
+
+  @@index([status, createdAt])
+  @@index([hostId])
+  @@index([guestId])
+  @@map("arena_match")
+}
+
+model ArenaMatchAnswer {
+  id         String   @id @default(cuid())
+  matchId    String
+  userId     String
+  position   Int
+  // null = czas minął
+  optionId   String?
+  correct    Boolean
+  responseMs Int
+  points     Int
+  answeredAt DateTime @default(now())
+
+  match      ArenaMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user       User       @relation("ArenaMatchAnswers", fields: [userId], references: [id], onDelete: Cascade)
+
+  // jedna odpowiedź gracza na jedno pytanie meczu
+  @@unique([matchId, userId, position])
+  @@index([userId])
+  @@map("arena_match_answer")
 }

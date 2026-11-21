@@ -141,7 +141,7 @@ export default function Profile() {
                 </Badge>
               )}
             </div>
-            <CardDescription>Zmień swoje dane konta.</CardDescription>
+            <CardDescription>Update your account details.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={onSave} className="flex flex-col gap-5">

@@ -12,7 +12,8 @@ import {
 } from "@/lib/lesson/interactive-math";
 import { cn } from "@/lib/utils";
 import type { BudgetStep as BudgetStepData } from "@/types/steps";
-import { CheckButton, SliderRow, StepFeedback, money } from "./step-feedback";
+import { useMoney } from "@/components/shared/use-currency";
+import { CheckButton, CurrencyRow, SliderRow, StepFeedback } from "./step-feedback";
 import { StepText } from "./step-text";
 
 const LABELS: Record<BudgetKey, string> = {
@@ -27,6 +28,7 @@ const START: BudgetShares = { fixed: 40, living: 25, fun: 25, savings: 5, invest
 
 export function BudgetStep({ step, onComplete }: { step: BudgetStepData; onComplete: () => void }) {
   const cfg = step.config;
+  const { money, localize } = useMoney();
   const [shares, setShares] = useState<BudgetShares>(START);
   const [checked, setChecked] = useState(false);
 
@@ -38,7 +40,8 @@ export function BudgetStep({ step, onComplete }: { step: BudgetStepData; onCompl
 
   return (
     <>
-      <StepText>{cfg.prompt}</StepText>
+      <StepText>{localize(cfg.prompt)}</StepText>
+      <CurrencyRow />
 
       <div className="flex flex-col gap-4">
         {BUDGET_KEYS.map((k) => (

@@ -3,11 +3,11 @@
 /** Suwaki przyczynowo-skutkowe: wykres wzrostu kapitału. */
 export interface GrowthConfig {
   prompt: string;
-  /** Cel w zł. */
+  /** Cel w EUR (waluta bazowa). */
   goalAmount: number;
   /** Wiek, w którym cel ma być osiągnięty. */
   targetAge: number;
-  /** Górny limit miesięcznej wpłaty w zł (ograniczenie zadania). */
+  /** Górny limit miesięcznej wpłaty w EUR (ograniczenie zadania). */
   maxMonthly: number;
   startAgeMin: number;
   startAgeMax: number;
@@ -21,11 +21,11 @@ export interface GrowthConfig {
 export interface BudgetConfig {
   prompt: string;
   income: number;
-  /** Minimum na stałe opłaty (zł); poniżej rośnie stres finansowy. */
+  /** Minimum na stałe opłaty (EUR); poniżej rośnie stres finansowy. */
   fixedMin: number;
-  /** Minimum na bieżące wydatki (zł); poniżej rośnie stres finansowy. */
+  /** Minimum na bieżące wydatki (EUR); poniżej rośnie stres finansowy. */
   livingMin: number;
-  /** Ile łącznie ma trafić do oszczędności i inwestycji (zł). */
+  /** Ile łącznie ma trafić do oszczędności i inwestycji (EUR). */
   savingsGoal: number;
   insight: string;
 }

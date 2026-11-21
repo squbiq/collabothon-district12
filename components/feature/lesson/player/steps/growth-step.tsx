@@ -4,7 +4,8 @@
 import { useState } from "react";
 import { futureValue, growthSeries } from "@/lib/lesson/interactive-math";
 import type { GrowthStep as GrowthStepData } from "@/types/steps";
-import { CheckButton, SliderRow, StepFeedback, money } from "./step-feedback";
+import { useMoney } from "@/components/shared/use-currency";
+import { CheckButton, CurrencyRow, SliderRow, StepFeedback } from "./step-feedback";
 import { StepText } from "./step-text";
 
 const W = 600;
@@ -12,6 +13,7 @@ const H = 260;
 const PAD = { l: 8, r: 8, t: 12, b: 28 };
 
 function Chart({ cfg, monthly, startAge, rate }: { cfg: GrowthStepData["config"]; monthly: number; startAge: number; rate: number }) {
+  const { money } = useMoney();
   const series = growthSeries(cfg, monthly, startAge, rate);
   const top = Math.max(cfg.goalAmount * 1.15, ...series.map((p) => p.capital * 1.05));
   const x = (age: number) => PAD.l + ((age - cfg.startAgeMin) / (cfg.targetAge - cfg.startAgeMin)) * (W - PAD.l - PAD.r);
@@ -42,6 +44,7 @@ function Chart({ cfg, monthly, startAge, rate }: { cfg: GrowthStepData["config"]
 
 export function GrowthStep({ step, onComplete }: { step: GrowthStepData; onComplete: () => void }) {
   const cfg = step.config;
+  const { money, localize } = useMoney();
   const [monthly, setMonthly] = useState(Math.round((cfg.maxMonthly * 0.4) / 10) * 10);
   const [startAge, setStartAge] = useState(cfg.startAgeMax);
   const [rate, setRate] = useState((cfg.rateMin + cfg.rateMax) / 2);
@@ -53,7 +56,8 @@ export function GrowthStep({ step, onComplete }: { step: GrowthStepData; onCompl
 
   return (
     <>
-      <StepText>{cfg.prompt}</StepText>
+      <StepText>{localize(cfg.prompt)}</StepText>
+      <CurrencyRow />
       <Chart cfg={cfg} monthly={monthly} startAge={startAge} rate={rate} />
 
       <p className="text-center text-sm font-semibold text-muted-foreground">

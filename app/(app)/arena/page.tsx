@@ -1,7 +1,7 @@
 // app/(app)/arena/page.tsx
 //
-// Arena: pojedynek z botem na pytania z daily lessons.
-import { ArenaDuel } from "@/components/feature/lesson/arena/arena-duel";
+// Arena: pojedynek z botem (trzy poziomy trudności) albo gra online. Pytania pochodzą z daily lessons.
+import { ArenaHub } from "@/components/feature/arena/arena-hub";
 
 export default function ArenaPage() {
   return (
@@ -10,10 +10,10 @@ export default function ArenaPage() {
         <header className="flex flex-col gap-1">
           <h1 className="text-3xl font-extrabold">Arena</h1>
           <p className="font-medium text-muted-foreground">
-            Face the bot and see who handles real market scenarios better
+            Face the bot or another player and see who handles real market scenarios better
           </p>
         </header>
-        <ArenaDuel />
+        <ArenaHub />
       </div>
     </section>
   );

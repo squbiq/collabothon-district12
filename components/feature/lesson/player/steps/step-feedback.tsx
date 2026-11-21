@@ -1,5 +1,6 @@
 // Wspólne elementy kroków interaktywnych: panel wyniku i przycisk sprawdzania.
 import { ChunkyButton } from "@/components/shared/chunky-button";
+import { CurrencySelect } from "@/components/shared/currency-select";
 import { cn } from "@/lib/utils";
 
 export function StepFeedback({ tone, title, children }: { tone: "good" | "try"; title: string; children: React.ReactNode }) {
@@ -28,7 +29,15 @@ export function CheckButton({ onClick, disabled, children = "Check" }: { onClick
   );
 }
 
-export const money = (n: number) => `${Math.round(n).toLocaleString("en-US")} zł`;
+/** Wiersz z przełącznikiem waluty nad kalkulatorem (kwoty w krokach są w EUR i przeliczane przy wyświetlaniu). */
+export function CurrencyRow() {
+  return (
+    <div className="flex items-center justify-end gap-2 text-sm font-bold text-muted-foreground">
+      <span>Currency</span>
+      <CurrencySelect />
+    </div>
+  );
+}
 
 export function SliderRow({
   id,

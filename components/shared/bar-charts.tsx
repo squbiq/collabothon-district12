@@ -21,6 +21,9 @@ import {
 import { cn } from "cn"
 import { Slider } from "@/components/ui/slider"
 import { Input } from "@/components/ui/input"
+import type { CurrencyCode } from "@/lib/currency"
+import { CurrencySelect } from "@/components/shared/currency-select"
+import { useCurrency } from "@/components/shared/use-currency"
 
 export const description = "Compound interest calculator"
 
@@ -49,11 +52,9 @@ type YearPoint = {
   interest: number
 }
 
-const currency = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "PLN",
-  maximumFractionDigits: 0,
-})
+// Kwoty wpisuje użytkownik, więc tu nie przeliczamy kursów – zmieniamy tylko oznaczenie waluty (domyślnie EUR).
+const makeFormatter = (code: CurrencyCode) =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: code, maximumFractionDigits: 0 })
 
 /**
  * Compound interest with monthly compounding and a monthly contribution
@@ -83,6 +84,8 @@ function calculate(years: number, monthlyDeposit: number): YearPoint[] {
 }
 
 export function ChartBarInteractive({ className }: { className?: string }) {
+  const [code] = useCurrency()
+  const currency = React.useMemo(() => makeFormatter(code), [code])
   const [years, setYears] = React.useState(10)
   const [depositInput, setDepositInput] = React.useState("500")
 
@@ -97,7 +100,10 @@ export function ChartBarInteractive({ className }: { className?: string }) {
     <Card className={cn("py-0 w-full", className)}>
       <CardHeader className="flex flex-col gap-4 border-b px-6 py-6 sm:flex-row sm:items-center">
         <section className="flex flex-1 flex-col justify-center gap-1">
-          <CardTitle>Compound interest calculator</CardTitle>
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle>Compound interest calculator</CardTitle>
+            <CurrencySelect />
+          </div>
           <CardDescription>
             Value of a deposit or investment with contributions and tax
             {" "}({ANNUAL_RATE * 100}% per year, monthly compounding,
@@ -127,7 +133,7 @@ export function ChartBarInteractive({ className }: { className?: string }) {
 
           <section className="flex w-full flex-col gap-2">
             <label htmlFor="monthly-deposit" className="text-sm">
-              Monthly contribution (PLN)
+              Monthly contribution ({code})
             </label>
             <Input
               id="monthly-deposit"
@@ -144,9 +150,9 @@ export function ChartBarInteractive({ className }: { className?: string }) {
 
       <CardContent className="flex flex-col gap-4 px-2 py-6 sm:px-6">
         <section className="grid grid-cols-3 gap-4 text-sm">
-          <Summary label="Deposited" value={last?.deposits ?? 0} />
-          <Summary label="Net interest" value={last?.interest ?? 0} />
-          <Summary label={`Total after ${years} ${yearsLabel(years)}`} value={total} strong />
+          <Summary label="Deposited" value={last?.deposits ?? 0} format={currency.format} />
+          <Summary label="Net interest" value={last?.interest ?? 0} format={currency.format} />
+          <Summary label={`Total after ${years} ${yearsLabel(years)}`} value={total} format={currency.format} strong />
         </section>
 
         <ChartContainer
@@ -214,10 +220,12 @@ export function ChartBarInteractive({ className }: { className?: string }) {
 function Summary({
   label,
   value,
+  format,
   strong,
 }: {
   label: string
   value: number
+  format: (value: number) => string
   strong?: boolean
 }) {
   return (
@@ -226,7 +234,7 @@ function Summary({
       <span
         className={cn("tabular-nums", strong ? "text-xl font-semibold" : "text-lg")}
       >
-        {currency.format(value)}
+        {format(value)}
       </span>
     </div>
   )

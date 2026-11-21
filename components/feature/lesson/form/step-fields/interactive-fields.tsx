@@ -51,9 +51,9 @@ export function GrowthFields({ step, onChange }: StepFieldsProps) {
     <>
       <TextField id="g-prompt" label="Task" value={c.prompt} onChange={(prompt) => set({ prompt })} />
       <Grid>
-        <NumberField id="g-goal" label="Goal (zł)" value={c.goalAmount} onChange={(goalAmount) => set({ goalAmount })} />
+        <NumberField id="g-goal" label="Goal (€)" value={c.goalAmount} onChange={(goalAmount) => set({ goalAmount })} />
         <NumberField id="g-target" label="Target age" value={c.targetAge} onChange={(targetAge) => set({ targetAge })} />
-        <NumberField id="g-max" label="Max monthly deposit (zł)" hint="Slider limit" value={c.maxMonthly} onChange={(maxMonthly) => set({ maxMonthly })} />
+        <NumberField id="g-max" label="Max monthly deposit (€)" hint="Slider limit" value={c.maxMonthly} onChange={(maxMonthly) => set({ maxMonthly })} />
         <span />
         <NumberField id="g-age-min" label="Earliest start age" value={c.startAgeMin} onChange={(startAgeMin) => set({ startAgeMin })} />
         <NumberField id="g-age-max" label="Latest start age" value={c.startAgeMax} onChange={(startAgeMax) => set({ startAgeMax })} />
@@ -72,10 +72,10 @@ export function BudgetFields({ step, onChange }: StepFieldsProps) {
     <>
       <TextField id="b-prompt" label="Task" value={c.prompt} onChange={(prompt) => set({ prompt })} />
       <Grid>
-        <NumberField id="b-income" label="Monthly income (zł)" value={c.income} onChange={(income) => set({ income })} />
-        <NumberField id="b-goal" label="Savings + investing goal (zł)" value={c.savingsGoal} onChange={(savingsGoal) => set({ savingsGoal })} />
-        <NumberField id="b-fixed" label="Fixed bills minimum (zł)" hint="Below it stress rises" value={c.fixedMin} onChange={(fixedMin) => set({ fixedMin })} />
-        <NumberField id="b-living" label="Living costs minimum (zł)" hint="Below it stress rises" value={c.livingMin} onChange={(livingMin) => set({ livingMin })} />
+        <NumberField id="b-income" label="Monthly income (€)" value={c.income} onChange={(income) => set({ income })} />
+        <NumberField id="b-goal" label="Savings + investing goal (€)" value={c.savingsGoal} onChange={(savingsGoal) => set({ savingsGoal })} />
+        <NumberField id="b-fixed" label="Fixed bills minimum (€)" hint="Below it stress rises" value={c.fixedMin} onChange={(fixedMin) => set({ fixedMin })} />
+        <NumberField id="b-living" label="Living costs minimum (€)" hint="Below it stress rises" value={c.livingMin} onChange={(livingMin) => set({ livingMin })} />
       </Grid>
       <TextField id="b-insight" label="Lesson shown after checking" value={c.insight} onChange={(insight) => set({ insight })} />
     </>

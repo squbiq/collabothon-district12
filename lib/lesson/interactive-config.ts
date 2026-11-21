@@ -89,10 +89,10 @@ export function parseConfig<T extends InteractiveType>(type: T, raw: unknown): C
 
 export const DEFAULT_CONFIGS: ConfigOf = {
   growth: {
-    prompt: "Build 1,000,000 zł by age 60 while putting aside at most 500 zł a month. Which settings make it work?",
-    goalAmount: 1_000_000,
+    prompt: "Build €300,000 by age 60 while putting aside at most €200 a month. Which settings make it work?",
+    goalAmount: 300_000,
     targetAge: 60,
-    maxMonthly: 500,
+    maxMonthly: 200,
     startAgeMin: 20,
     startAgeMax: 45,
     rateMin: 0,
@@ -100,11 +100,11 @@ export const DEFAULT_CONFIGS: ConfigOf = {
     insight: "Time does most of the work: starting earlier beats paying in more, because compound interest earns interest on interest.",
   },
   budget: {
-    prompt: "You earn 6,000 zł a month. Save and invest at least 1,200 zł without cutting your basic needs too hard.",
-    income: 6000,
-    fixedMin: 2400,
-    livingMin: 1500,
-    savingsGoal: 1200,
+    prompt: "You earn €2,500 a month. Save and invest at least €500 without cutting your basic needs too hard.",
+    income: 2500,
+    fixedMin: 1000,
+    livingMin: 625,
+    savingsGoal: 500,
     insight: "A common rule of thumb is 50/30/20: needs, wants and saving. Cutting needs too deep only works until stress breaks the plan.",
   },
   risk: {
@@ -117,11 +117,11 @@ export const DEFAULT_CONFIGS: ConfigOf = {
     insight: "The shorter the horizon, the less time there is to recover from a crash, so risk should come down as the goal gets closer.",
   },
   estimate: {
-    prompt: "A 400,000 zł loan, 25 years, 7% interest. How much interest will you pay the bank in total? No calculator.",
-    unit: "zł",
+    prompt: "A €100,000 loan, 25 years, 7% interest. How much interest will you pay the bank in total? No calculator.",
+    unit: "€",
     min: 0,
-    max: 1_000_000,
-    answer: 448_135,
+    max: 250_000,
+    answer: 112_034,
     insight: "Over a long loan the interest can exceed the borrowed amount. Long-term costs are almost always underestimated.",
   },
 };

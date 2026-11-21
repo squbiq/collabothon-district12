@@ -4,16 +4,18 @@
 
 import { useState } from "react";
 import { futureValue } from "@/lib/lesson/interactive-math";
+import { CurrencySelect } from "@/components/shared/currency-select";
+import { useMoney } from "@/components/shared/use-currency";
 import { cn } from "@/lib/utils";
 
-const MONTHLY = 300;
+const MONTHLY = 100; // EUR
 const RATE = 7; // % rocznie (nominalnie, założenie poglądowe)
 const END_AGE = 65;
 const FIRST = 25;
 
-const money = (n: number) => `${Math.round(n).toLocaleString("en-US")} zł`;
 
 export function TimeInTheMarket() {
+  const { money } = useMoney();
   const [startAge, setStartAge] = useState(35);
 
   const early = futureValue(MONTHLY, RATE, END_AGE - FIRST);
@@ -23,13 +25,16 @@ export function TimeInTheMarket() {
 
   return (
     <section aria-labelledby="time-heading" className="flex flex-col gap-4 rounded-2xl border-2 border-b-4 p-5">
-      <div>
-        <h2 id="time-heading" className="text-xl font-extrabold text-foreground">
-          Time does the heavy lifting
-        </h2>
-        <p className="font-medium text-muted-foreground">
-          {money(MONTHLY)} a month at {RATE}% a year, until age {END_AGE}. Move the slider to see what waiting costs.
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 id="time-heading" className="text-xl font-extrabold text-foreground">
+            Time does the heavy lifting
+          </h2>
+          <p className="font-medium text-muted-foreground">
+            {money(MONTHLY)} a month at {RATE}% a year, until age {END_AGE}. Move the slider to see what waiting costs.
+          </p>
+        </div>
+        <CurrencySelect />
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -53,8 +58,8 @@ export function TimeInTheMarket() {
         />
       </div>
 
-      <Bar label={`Starting at ${FIRST}`} value={early} max={early} className="bg-green-500" />
-      <Bar label={`Starting at ${startAge}`} value={mine} max={early} className="bg-sky-500" extra={`${money(paidMine)} paid in`} />
+      <Bar label={`Starting at ${FIRST}`} value={early} max={early} className="bg-green-500" money={money} />
+      <Bar label={`Starting at ${startAge}`} value={mine} max={early} className="bg-sky-500" extra={`${money(paidMine)} paid in`} money={money} />
 
       <p aria-live="polite" className="rounded-xl bg-muted px-4 py-3 font-bold text-foreground">
         {lost > 1
@@ -65,7 +70,7 @@ export function TimeInTheMarket() {
   );
 }
 
-function Bar({ label, value, max, className, extra }: { label: string; value: number; max: number; className: string; extra?: string }) {
+function Bar({ label, value, max, className, extra, money }: { label: string; value: number; max: number; className: string; extra?: string; money: (n: number) => string }) {
   return (
     <div className="flex flex-col gap-1">
       <div className="flex justify-between gap-2 text-sm font-bold">

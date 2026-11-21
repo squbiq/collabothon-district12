@@ -3,11 +3,15 @@
 
 import { useEffect, useState } from "react";
 import type { EstimateStep as EstimateStepData } from "@/types/steps";
-import { CheckButton, StepFeedback } from "./step-feedback";
+import { isMoneyUnit } from "@/lib/currency";
+import { useMoney } from "@/components/shared/use-currency";
+import { CheckButton, CurrencyRow, StepFeedback } from "./step-feedback";
 import { StepText } from "./step-text";
 
 export function EstimateStep({ step, onComplete }: { step: EstimateStepData; onComplete: () => void }) {
   const cfg = step.config;
+  const { money, localize } = useMoney();
+  const moneyUnit = isMoneyUnit(cfg.unit);
   const span = cfg.max - cfg.min;
   const [guess, setGuess] = useState(cfg.min + span / 2);
   const [revealed, setRevealed] = useState(false);
@@ -29,7 +33,8 @@ export function EstimateStep({ step, onComplete }: { step: EstimateStepData; onC
     return () => cancelAnimationFrame(frame);
   }, [revealed]);
 
-  const fmt = (n: number) => `${Math.round(n).toLocaleString("en-US")}${cfg.unit ? ` ${cfg.unit}` : ""}`;
+  // jednostka walutowa (zł, €) jest przeliczana na wybraną walutę, inne jednostki zostają bez zmian
+  const fmt = (n: number) => (moneyUnit ? money(n) : `${Math.round(n).toLocaleString("en-US")}${cfg.unit ? ` ${cfg.unit}` : ""}`);
   const pos = (v: number) => `${((v - cfg.min) / span) * 100}%`;
   // marker prawdziwej odpowiedzi wyjeżdża z miejsca, w którym stał strzał
   const shownAnswer = guess + (cfg.answer - guess) * t;
@@ -37,7 +42,8 @@ export function EstimateStep({ step, onComplete }: { step: EstimateStepData; onC
 
   return (
     <>
-      <StepText>{cfg.prompt}</StepText>
+      <StepText>{localize(cfg.prompt)}</StepText>
+      {moneyUnit && <CurrencyRow />}
 
       <div className="flex flex-col gap-4 rounded-2xl border-2 p-5">
         <p className="text-center text-3xl font-extrabold text-primary tabular-nums">{fmt(guess)}</p>
@@ -79,7 +85,7 @@ export function EstimateStep({ step, onComplete }: { step: EstimateStepData; onC
             You guessed {fmt(guess)} – that is {Math.round(ratio * 100)}% of the real value
             {Math.abs(ratio - 1) <= 0.15 ? ". Excellent calibration." : ratio < 1 ? ". Costs like this are usually underestimated." : "."}
           </p>
-          <p className="mt-2">{cfg.insight}</p>
+          <p className="mt-2">{localize(cfg.insight)}</p>
         </StepFeedback>
       )}
     </>

@@ -34,10 +34,10 @@ export async function createLesson(
   ];
 
   if (!chapterId || !title || !description) {
-    return fail("Uzupełnij rozdział, tytuł i opis lekcji.");
+    return fail("Fill in the chapter, title and description of the lesson.");
   }
   if (!Number.isInteger(estimatedMinutes) || estimatedMinutes < 1) {
-    return fail("Szacowany czas musi być liczbą całkowitą (minimum 1 minuta).");
+    return fail("Estimated time must be a whole number (at least 1 minute).");
   }
   if (!Array.isArray(input.steps) || input.steps.length === 0) {
     return fail("Dodaj co najmniej jeden krok.");
@@ -81,7 +81,7 @@ export async function createLesson(
     return { ok: true, id: lesson.id };
   } catch (e) {
     console.error("createLesson failed", e);
-    return fail("Nie udało się zapisać lekcji. Spróbuj ponownie.");
+    return fail("Could not save the lesson. Please try again.");
   }
 }
 
@@ -146,7 +146,7 @@ export async function updateLesson(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
     if (!input.chapterId || !input.title.trim()) {
-      return { ok: false, error: "Rozdział oraz tytuł lekcji są wymagane." };
+      return { ok: false, error: "Chapter and lesson title are required." };
     }
 
     await prisma.$transaction(async (tx) => {
@@ -207,13 +207,13 @@ export async function updateLesson(
 
     return { ok: true };
   } catch (err) {
-    console.error("Błąd podczas aktualizacji lekcji:", err);
+    console.error("Error while updating the lesson:", err);
     return {
       ok: false,
       error:
         err instanceof Error
           ? err.message
-          : "Nie udało się zapisać zmian w lekcji.",
+          : "Could not save the lesson changes.",
     };
   }
 }

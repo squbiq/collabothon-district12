@@ -93,7 +93,7 @@ export async function registerStreakActivity(
       where: { id: userId },
       select: { streak: true, lastStreakUpdate: true },
     });
-    if (!user) throw new Error(`Użytkownik ${userId} nie istnieje`);
+    if (!user) throw new Error(`User ${userId} does not exist`);
 
     const next = computeStreakAfterActivity(user, now);
     if (!next.changed) return next;
